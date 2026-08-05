@@ -1,6 +1,7 @@
 LICENSE
 pyproject.toml
 code/padic_kernel/__init__.py
+code/padic_kernel/tree.py
 code/padic_kernel/utils.py
 code/padic_kernel.egg-info/PKG-INFO
 code/padic_kernel.egg-info/SOURCES.txt

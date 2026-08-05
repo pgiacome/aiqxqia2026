@@ -35,6 +35,9 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "T20"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["padic_kernel", "experiments"]
+
 [tool.mypy]
 python_version = "3.12"
 ignore_missing_imports = true
