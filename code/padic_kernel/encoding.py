@@ -35,6 +35,12 @@ __all__ = [
 ENCODING_REGISTRY: dict[str, type[Encoding]] = {}
 E = TypeVar("E", bound="Encoding")
 
+#: Statevectors are held densely, so a ``2**height``-dimensional encoding on a deep
+#: tree does not fit in memory. WordNet's noun hierarchy reaches depth 19, which would
+#: need 2**19 amplitudes per point. Experiments truncate the tree below this cap; the
+#: guard is here so an over-deep tree fails loudly instead of exhausting memory.
+MAX_QUBITS = 16
+
 
 def register_encoding(name: str) -> Callable[[type[E]], type[E]]:
     def decorator(cls: type[E]) -> type[E]:
@@ -70,6 +76,24 @@ def _kron_rows(factors: list[np.ndarray]) -> np.ndarray:
     return out
 
 
+def _check_width(height: int, name: str) -> None:
+    """Refuse to build a ``2**height``-dimensional statevector that will not fit."""
+    if height > MAX_QUBITS:
+        raise ValueError(
+            f"{name} needs 2**{height} amplitudes per point, above the MAX_QUBITS={MAX_QUBITS} "
+            "cap; truncate the tree with padic_kernel.tree.truncate_at_depth first"
+        )
+
+
+def _check_dim(local_dim: int, height: int, name: str) -> None:
+    """Refuse a product map whose ``local_dim ** height`` width will not fit."""
+    if height * np.log2(max(local_dim, 2)) > MAX_QUBITS:
+        raise ValueError(
+            f"{name} needs {local_dim}**{height} amplitudes per point, above the "
+            f"MAX_QUBITS={MAX_QUBITS} cap; reduce the local dimension or truncate the tree"
+        )
+
+
 @register_encoding("path_state")
 @dataclass
 class PathStateEncoding(Encoding):
@@ -96,6 +120,7 @@ class AngleEncoding(Encoding):
     radix: int
 
     def states(self, tree: RootedTree, leaves: np.ndarray) -> np.ndarray:
+        _check_width(tree.height, "angle encoding")
         dig = digit_matrix(tree, leaves)
         theta = np.pi * dig / self.radix
         factors = [
@@ -110,18 +135,29 @@ class AngleEncoding(Encoding):
 @register_encoding("basis")
 @dataclass
 class BasisEncoding(Encoding):
-    """One qudit per level in the computational basis."""
+    """One qudit per level in the computational basis.
+
+    The nominal Hilbert space has dimension ``radix ** height``, which is astronomical
+    on a real hierarchy (``402 ** 19`` for WordNet). Only the ``m`` distinct occupied
+    basis states matter, and distinct leaves always occupy distinct states, so we emit
+    the one-hot representation in dimension ``m``. The Gram matrix is identical -- the
+    identity either way -- and :meth:`nominal_dim` reports the true width for the
+    resource tables.
+    """
 
     radix: int
 
+    def nominal_dim(self, tree: RootedTree) -> float:
+        return float(self.radix) ** tree.height
+
     def states(self, tree: RootedTree, leaves: np.ndarray) -> np.ndarray:
         dig = digit_matrix(tree, leaves)
-        factors = []
-        for i in range(dig.shape[1]):
-            block = np.zeros((dig.shape[0], self.radix), dtype=np.complex128)
-            block[np.arange(dig.shape[0]), dig[:, i]] = 1.0
-            factors.append(block)
-        return _kron_rows(factors)
+        codes = np.unique(dig, axis=0, return_inverse=True)[1]
+        if codes.shape[0] != np.unique(codes).shape[0]:
+            raise ValueError("two leaves share a digit path; the tree is malformed")
+        psi = np.zeros((dig.shape[0], dig.shape[0]), dtype=np.complex128)
+        psi[np.arange(dig.shape[0]), codes] = 1.0
+        return psi
 
 
 @register_encoding("random_product")
@@ -134,6 +170,7 @@ class RandomProductEncoding(Encoding):
     seed: int = 0
 
     def states(self, tree: RootedTree, leaves: np.ndarray) -> np.ndarray:
+        _check_dim(self.local_dim, tree.height, "random product encoding")
         dig = digit_matrix(tree, leaves)
         rng = np.random.default_rng(self.seed)
         factors = []
@@ -161,6 +198,7 @@ class BlockProductEncoding(Encoding):
     seed: int = 0
 
     def states(self, tree: RootedTree, leaves: np.ndarray) -> np.ndarray:
+        _check_dim(self.radix, tree.height, "block product encoding")
         dig = digit_matrix(tree, leaves)
         rng = np.random.default_rng(self.seed)
         factors = []
@@ -191,6 +229,7 @@ class ZZFeatureMapEncoding(Encoding):
     reps: int = 2
 
     def states(self, tree: RootedTree, leaves: np.ndarray) -> np.ndarray:
+        _check_width(tree.height, "ZZ feature map")
         dig = digit_matrix(tree, leaves)
         m, n = dig.shape
         angles = 2.0 * np.pi * dig / self.radix

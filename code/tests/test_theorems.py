@@ -253,7 +253,7 @@ def test_theorem_c_generalises_to_a_non_homogeneous_tree():
         "b1": "b",
         "c1": "c", "c2": "c",
     }
-    tree = pad_to_uniform_depth(from_parent_map(parent_of))
+    tree, _tip = pad_to_uniform_depth(from_parent_map(parent_of))
     lca = lca_depth_matrix(ancestor_matrix(tree, tree.leaves))
     f = Profile((0.1, 0.4, 1.0))
     psi = EncodingFactory("path_state", profile=f).states(tree, tree.leaves)

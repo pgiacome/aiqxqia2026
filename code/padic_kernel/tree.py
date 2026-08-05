@@ -24,7 +24,10 @@ __all__ = [
     "digit_matrix",
     "from_parent_map",
     "lca_depth_matrix",
+    "max_branching",
     "pad_to_uniform_depth",
+    "restrict_to_leaves",
+    "truncate_at_depth",
 ]
 
 
@@ -121,17 +124,23 @@ def _depths_from_parent(parent: np.ndarray) -> np.ndarray:
     return depth
 
 
-def pad_to_uniform_depth(tree: RootedTree) -> RootedTree:
+def pad_to_uniform_depth(tree: RootedTree) -> tuple[RootedTree, np.ndarray]:
     """Extend every shallow leaf by a chain of unary nodes down to ``tree.height``.
 
     Padding does not change LCA depths between the original leaves, because a unary
-    chain adds no branching; it only makes every leaf sit at the same depth so that
-    a single amplitude profile applies uniformly.
+    chain adds no branching; it only makes every leaf sit at the same depth so that a
+    single amplitude profile applies uniformly.
+
+    Returns the padded tree and a ``tip`` array: ``tip[u]`` is ``u`` itself for every
+    node that was already deep enough, and the bottom of ``u``'s padding chain for a
+    shallow leaf. Callers holding leaf indices **must** push them through ``tip``,
+    because a padded leaf is no longer a leaf of the padded tree.
     """
     height = tree.height
     parents = list(map(int, tree.parent))
     depths = list(map(int, tree.depth))
     labels = list(tree.labels) if tree.labels else [str(i) for i in range(tree.num_nodes)]
+    tip = np.arange(tree.num_nodes, dtype=np.int64)
     for leaf in map(int, tree.leaves):
         current, d = leaf, int(tree.depth[leaf])
         while d < height:
@@ -140,11 +149,74 @@ def pad_to_uniform_depth(tree: RootedTree) -> RootedTree:
             depths.append(d)
             labels.append(f"{labels[leaf]}#pad{d}")
             current = len(parents) - 1
-    return RootedTree(
+        tip[leaf] = current
+    padded = RootedTree(
         parent=np.asarray(parents, dtype=np.int64),
         depth=np.asarray(depths, dtype=np.int64),
         labels=tuple(labels),
     )
+    return padded, tip
+
+
+def truncate_at_depth(tree: RootedTree, max_depth: int) -> RootedTree:
+    """Drop every node below ``max_depth``, making depth-``max_depth`` nodes leaves.
+
+    Real hierarchies are deep and irregular; WordNet's noun tree reaches depth 19.
+    Truncation bounds the height so that the ``2**height``-dimensional product
+    baselines stay computable and every encoding is compared on the same tree. It is a
+    stated preprocessing choice, not a silent one.
+    """
+    if max_depth < 1:
+        raise ValueError("max_depth must be at least 1")
+    keep = np.flatnonzero(tree.depth <= max_depth)
+    sub, _ = _induced_subtree(tree, keep)
+    return sub
+
+
+def restrict_to_leaves(tree: RootedTree, leaves: np.ndarray) -> tuple[RootedTree, np.ndarray]:
+    """Restrict ``tree`` to the ancestor closure of ``leaves``; return it and the remap.
+
+    LCA depths among ``leaves`` are unchanged, because every ancestor of a kept leaf is
+    kept. Only branches leading to discarded leaves disappear. Without this the
+    path-state dimension is the size of the whole hierarchy -- 74k nodes for WordNet --
+    when only the sampled leaves' paths can ever carry amplitude.
+    """
+    # Walk parents rather than calling ancestor_matrix: leaves may sit at mixed depths
+    # at this point, since padding happens after restriction.
+    frontier = np.unique(np.asarray(leaves, dtype=np.int64))
+    keep = frontier
+    while frontier.size:
+        frontier = np.unique(tree.parent[frontier])
+        frontier = frontier[frontier >= 0]
+        frontier = np.setdiff1d(frontier, keep, assume_unique=False)
+        keep = np.union1d(keep, frontier)
+    sub, index_of = _induced_subtree(tree, keep)
+    return sub, index_of[np.asarray(leaves, dtype=np.int64)]
+
+
+def _induced_subtree(tree: RootedTree, keep: np.ndarray) -> tuple[RootedTree, np.ndarray]:
+    """The subtree on ``keep``, which must be closed under taking parents.
+
+    Returns the subtree and an ``old index -> new index`` map (``-1`` where dropped).
+    """
+    keep = np.unique(np.asarray(keep, dtype=np.int64))
+    index_of = np.full(tree.num_nodes, -1, dtype=np.int64)
+    index_of[keep] = np.arange(keep.shape[0], dtype=np.int64)
+    old_parent = tree.parent[keep]
+    parent = np.where(old_parent < 0, -1, index_of[np.clip(old_parent, 0, None)])
+    if int((parent < 0).sum()) != 1:
+        raise ValueError("kept node set is not closed under taking parents")
+    labels = tuple(tree.labels[i] for i in keep) if tree.labels else ()
+    sub = RootedTree(parent=parent, depth=tree.depth[keep].copy(), labels=labels)
+    return sub, index_of
+
+
+def max_branching(tree: RootedTree) -> int:
+    """The largest number of children of any node -- the effective radix."""
+    inner = tree.parent[tree.parent >= 0]
+    if inner.size == 0:
+        return 1
+    return int(np.bincount(inner).max())
 
 
 def ancestor_matrix(tree: RootedTree, leaves: np.ndarray) -> np.ndarray:
