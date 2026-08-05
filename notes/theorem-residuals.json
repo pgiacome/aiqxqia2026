@@ -1,0 +1,38 @@
+[
+  {
+    "p": 2,
+    "n": 3,
+    "leaves": 8,
+    "nodes": 15,
+    "qubits_used": 4,
+    "residual": 2.220446049250313e-16,
+    "qubit_lower_bound_s2": 2.476438043942987
+  },
+  {
+    "p": 2,
+    "n": 5,
+    "leaves": 32,
+    "nodes": 63,
+    "qubits_used": 6,
+    "residual": 1.1102230246251565e-16,
+    "qubit_lower_bound_s2": 4.430144391669052
+  },
+  {
+    "p": 3,
+    "n": 3,
+    "leaves": 27,
+    "nodes": 40,
+    "qubits_used": 6,
+    "residual": 1.3877787807814457e-17,
+    "qubit_lower_bound_s2": 4.353270518646947
+  },
+  {
+    "p": 5,
+    "n": 2,
+    "leaves": 25,
+    "nodes": 31,
+    "qubits_used": 5,
+    "residual": 2.7755575615628914e-17,
+    "qubit_lower_bound_s2": 4.39047195397465
+  }
+]
