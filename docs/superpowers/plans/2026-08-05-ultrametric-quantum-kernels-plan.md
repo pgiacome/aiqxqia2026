@@ -2817,7 +2817,7 @@ def main() -> None:
         rates_seen, residuals = [], []
         for rep in range(REPEATS if shots is not None else 1):
             rng = np.random.default_rng(cfg.seed + rep)
-            k = depolarise(exact, rate)
+            k = depolarise(exact, rate, dim=ds.tree.num_nodes)
             if shots is not None:
                 k = sample_kernel(k, shots=shots, rng=rng)
             rates_seen.append(violation_rate(1.0 - k))
@@ -3379,3 +3379,38 @@ git commit -m "docs(paper): style pass, self-review fixes, submission checklist"
 | 8 Aug | 14, 16, 17: numbers extraction, references, mathematical core |
 | 9 Aug | 18–19: empirical sections, self-review, compile, **submit** |
 | 10 Aug | Buffer only |
+
+---
+
+## Execution log
+
+**5 August 2026 — Tasks 1–7 complete** on branch `feature/ultrametric-quantum-kernels`.
+98 tests pass; `ruff` and `mypy` clean. Four deviations from the plan as written, all
+deliberate:
+
+1. **`depolarise` gained a required `dim` argument.** The plan modelled depolarising as
+   `K -> (1 - rate) K + rate/2`, which pulls kernel entries *up* towards 1/2 and made
+   the plan's own test assertion false. The compute-uncompute estimator reads the
+   all-zeros outcome probability, which the maximally mixed state gives as `1/dim`, so
+   the correct model is `K -> (1 - rate) K + rate/dim`. Task 13's call site is updated
+   above.
+2. **`reupload.py` was built during Task 4** rather than Task 12, because the Task 4
+   test file already exercises it. Task 12 now only needs `e4_entangling.py`.
+3. **`digit_matrix` is vectorised** via a stable argsort on the parent array instead of
+   the plan's per-node Python loop, which would have been ~80k iterations on WordNet.
+4. **Two Theorem A tests were strengthened.** The plan's
+   `test_theorem_a_conclusion_forces_at_most_three_kernel_values` built an object that
+   was not actually ultrametric, so it tested the wrong thing. It is replaced by
+   `test_theorem_a_ultrametric_product_map_resolves_only_one_level`, which builds a
+   genuinely ultrametric product map from interpolated simplex factors and checks the
+   predicted two-valued kernel, plus
+   `test_theorem_a_a_nontrivial_deep_factor_destroys_ultrametricity`, which exercises
+   the proof's multiplicativity step directly.
+
+Also added: `test_theorem_b_does_not_subsume_theorem_a_at_radix_two`, which pins the
+complementarity claim so it cannot quietly rot into an overclaim.
+
+**Recorded for the paper** (`notes/theorem-residuals.json`): path-state profile
+residuals are `2.2e-16` at `(p,n) = (2,3)`, `1.1e-16` at `(2,5)`, `1.4e-17` at `(3,3)`,
+`2.8e-17` at `(5,2)` — machine precision in every case, with zero strong-triangle
+violations.
