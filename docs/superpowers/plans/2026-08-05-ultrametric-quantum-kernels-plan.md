@@ -3414,3 +3414,51 @@ complementarity claim so it cannot quietly rot into an overclaim.
 residuals are `2.2e-16` at `(p,n) = (2,3)`, `1.1e-16` at `(2,5)`, `1.4e-17` at `(3,3)`,
 `2.8e-17` at `(5,2)` — machine precision in every case, with zero strong-triangle
 violations.
+
+**6 August 2026 — Tasks 8–9 complete.** 117 tests pass; `ruff` and `mypy` clean. E1 is
+green on synthetic (`p = 2, 3`), WordNet, GO and NCBI.
+
+Three library changes were forced by the real hierarchies, which are far larger and
+deeper than the plan assumed (WordNet: 74,374 nodes, height 19, max branching 402):
+
+1. **`tree.restrict_to_leaves`** cuts to the sampled leaves' ancestor closure. Padding
+   the full WordNet tree would have made the path-state array 2.8 GB when only the
+   sampled leaves' paths can carry amplitude.
+2. **`tree.truncate_at_depth` plus `encoding.MAX_QUBITS`.** Angle and ZZ need
+   `2**height` amplitudes per point — `2**19` on raw WordNet. Experiments truncate at
+   depth 8; the guard makes an over-deep tree fail loudly instead of exhausting memory.
+3. **`BasisEncoding` emits the compact one-hot form.** Its nominal width is
+   `radix ** height` = `402**19`, unrepresentable; the occupied-subspace form has an
+   identical Gram, and `nominal_dim()` reports the true width for the resource table.
+
+`pad_to_uniform_depth` now also returns a `tip` remap — padding turns a shallow leaf
+into an internal node, so held leaf indices go stale. A test caught this.
+
+**A finding that changes how E1 is reported.** Violation count does not separate the
+encodings: basis encoding has **zero** violations, because `K = I` is the discrete
+metric, which is ultrametric. It is also useless — it resolves nothing. This is the
+`v* = n` corner of Theorem A, not a counterexample, but it means the paper cannot lead
+with "path states have zero violations and the baselines do not". E1 now reports two
+quantities, and only the path state wins both:
+
+| encoding | violations | level constancy | resolution depth |
+|---|---|---|---|
+| path state | 0 | `4.4e-16` | full |
+| basis | 0 | 0 | **2** |
+| angle | ~6.5e5 | 0.95 | full |
+| ZZ | ~6.7e5 | 0.72 | full |
+| random product | ~6.8e5 | 0.98 | full |
+
+§8 of the paper must present the basis encoding this way rather than omitting it.
+
+**Two reporting artifacts fixed before they could be mistaken for findings.** The
+geometric profile base is now a free parameter defaulting to 2 rather than the
+branching factor — at radix 38 the profile underflowed to `4e-13` and understated
+path-state resolution as 6/9. And resolution depth is compared against the LCA levels
+the sample actually populates: GO's 8 is a ceiling shared by every encoding, not a
+shortfall.
+
+**Dataset shapes for the paper** (256 leaves, truncated at depth 8): WordNet 74,374
+source nodes / height 19 → 1,028 nodes, radix 11, 11 classes, 11 qubits; GO
+molecular-function 10,041 / 12 → 1,235 nodes, radix 16, 26 classes, 11 qubits; NCBI
+Mammalia 14,722 / 14 → 633 nodes, radix 38, 4 classes, 10 qubits.
