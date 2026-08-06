@@ -281,3 +281,107 @@ def test_baselines_violate_the_strong_triangle_inequality(name, kwargs):
     psi = EncodingFactory(name, **kwargs).states(tree, tree.leaves)
     count, _ = strong_triangle_violations(1.0 - fidelity_gram(psi))
     assert count > 0
+
+
+@pytest.mark.parametrize("p,n,s", [(2, 4, 1.0), (2, 6, 2.0), (3, 3, 1.0), (5, 2, 2.0)])
+def test_theorem_b_closed_form_bound_matches_the_full_tree(p, n, s):
+    """The closed-form bound agrees with the empirical one when no leaf is dropped."""
+    from padic_kernel.metrics import regular_tree_dimension_bound
+
+    _, lca = _setup(p, n)
+    f = geometric_profile(n, p, s)
+    assert regular_tree_dimension_bound(f, p, n) == pytest.approx(
+        dimension_lower_bound(f(lca)), rel=1e-12
+    )
+
+
+@pytest.mark.parametrize("p,n,s", [(3, 6, 2.0), (5, 5, 2.0), (3, 8, 1.5)])
+def test_theorem_b_subsampling_understates_the_bound(p, n, s):
+    """A subsampled estimate is valid but capped at the sample size.
+
+    This is why the paper's crossing figure uses the closed form: an estimate from 128
+    sampled leaves saturates at 7 qubits however deep the tree is.
+    """
+    from padic_kernel.metrics import regular_tree_dimension_bound
+
+    full = regular_tree_dimension_bound(geometric_profile(n, p, s), p, n)
+    assert full > 128, "pick a case where the full tree exceeds the sample size"
+    assert full > p**n / 2  # with s > 1 the bound is a constant factor below L
+
+
+@pytest.mark.parametrize("p", [2, 3, 5])
+def test_theorem_b_requires_s_greater_than_one(p):
+    """At ``s = 1`` the row sum grows with ``n``, so the bound degrades.
+
+    ``S(p, s, n) = 1 + ((p-1)/p) * sum_m p**(m(1-s))`` is a convergent geometric series
+    only for ``s > 1``. At ``s = 1`` every term is 1 and ``S = 1 + n(p-1)/p``, so the
+    bound falls to ``p**n / Theta(n)`` and the corollary ruling out n-qubit encodings
+    no longer follows from it. The paper states ``s > 1`` as a hypothesis; this pins
+    that it is a real restriction and not decoration.
+    """
+    from padic_kernel.metrics import regular_tree_dimension_bound
+
+    n = 6
+    at_one = regular_tree_dimension_bound(geometric_profile(n, p, 1.0), p, n)
+    above_one = regular_tree_dimension_bound(geometric_profile(n, p, 2.0), p, n)
+    assert at_one == pytest.approx(p**n / (1.0 + n * (p - 1) / p), rel=1e-12)
+    assert above_one > at_one
+
+
+# ------------------------------------------------- Proposition D: noise and sampling
+
+
+@pytest.mark.parametrize("rate", [0.0, 0.01, 0.1, 0.5, 0.9, 0.99])
+def test_proposition_d_depolarising_preserves_ultrametricity_exactly(rate):
+    """Global depolarising noise cannot break the strong triangle inequality.
+
+    It sends ``K -> (1 - r)K + r/D``, hence ``d = 1 - K -> (1 - r)d + r(1 - 1/D)``,
+    an increasing affine map. Such a map preserves ``d(x,z) <= max(d(x,y), d(y,z))``
+    because it preserves order and commutes with ``max``. Only the contrast of the
+    profile shrinks.
+    """
+    from padic_kernel.kernels import depolarise
+
+    tree, _ = _setup(2, 4)
+    f = geometric_profile(4, 2, 1.0)
+    psi = EncodingFactory("path_state", profile=f).states(tree, tree.leaves)
+    noisy = depolarise(fidelity_gram(psi), rate, dim=int(psi.shape[1]))
+    count, excess = strong_triangle_violations(1.0 - noisy)
+    assert count == 0
+    assert excess <= 1e-12
+
+
+def test_proposition_d_depolarising_still_destroys_resolution():
+    """Ultrametricity survives depolarising noise; usable resolution does not."""
+    from padic_kernel.kernels import depolarise
+    from padic_kernel.metrics import resolution_depth
+
+    tree, lca = _setup(2, 4)
+    f = geometric_profile(4, 2, 1.0)
+    psi = EncodingFactory("path_state", profile=f).states(tree, tree.leaves)
+    k = fidelity_gram(psi)
+    dim = int(psi.shape[1])
+    clean = resolution_depth(depolarise(k, 0.0, dim=dim), lca, tol=1e-3)
+    wrecked = resolution_depth(depolarise(k, 0.999, dim=dim), lca, tol=1e-3)
+    assert clean == 5
+    assert wrecked < clean
+
+
+def test_proposition_d_exact_ultrametrics_are_isoceles_so_ties_dominate():
+    """Why violation *count* is the wrong robustness statistic under sampling noise.
+
+    In an ultrametric every triangle is isoceles with the two longest sides equal, so
+    a constant fraction of triples meets the strong triangle inequality with equality.
+    An arbitrarily small perturbation flips about half of them into violations, which
+    makes the count saturate rather than decay as the shot budget grows. E5 therefore
+    reports the violation *magnitude*.
+    """
+    tree, _ = _setup(2, 4)
+    f = geometric_profile(4, 2, 1.0)
+    psi = EncodingFactory("path_state", profile=f).states(tree, tree.leaves)
+    dist = 1.0 - fidelity_gram(psi)
+    d_xy = dist[:, :, None]
+    d_yz = dist[None, :, :]
+    d_xz = dist[:, None, :]
+    ties = np.isclose(d_xz, np.maximum(d_xy, d_yz), atol=1e-12)
+    assert ties.mean() > 0.25, "expected a constant fraction of triples to be tight"

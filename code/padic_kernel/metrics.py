@@ -16,6 +16,8 @@ __all__ = [
     "level_constancy",
     "profile_residual",
     "qubit_lower_bound",
+    "regular_tree_dimension_bound",
+    "regular_tree_qubit_bound",
     "resolution_depth",
     "strong_triangle_violations",
     "violation_rate",
@@ -90,6 +92,33 @@ def dimension_lower_bound(kernel: np.ndarray) -> float:
 def qubit_lower_bound(kernel: np.ndarray) -> float:
     """The Theorem B bound expressed in qubits."""
     return float(np.log2(dimension_lower_bound(kernel)))
+
+
+def regular_tree_dimension_bound(profile: _Callable, p: int, n: int) -> float:
+    """The Theorem B bound on the *full* regular p-ary tree, in closed form.
+
+    Evaluating :func:`dimension_lower_bound` on a subsample of ``L'`` leaves is still a
+    valid lower bound -- restricting the point set can only make the kernel easier to
+    realise -- but it is capped at ``L'``, so a subsampled estimate understates the
+    bound and saturates at ``log2(L')`` qubits. This computes it on all ``p**n`` leaves
+    without materialising them:
+
+    ``D >= p**n / S`` where ``S = f(n) + sum_{v<n} (p**(n-v) - p**(n-v-1)) f(v)``
+
+    is the number of leaves at each LCA depth from a fixed leaf, weighted by ``f``.
+    """
+    if p < 2 or n < 1:
+        raise ValueError("require p >= 2 and n >= 1")
+    total = float(profile(n))
+    for v in range(n):
+        siblings = p ** (n - v) - p ** (n - v - 1)
+        total += siblings * float(profile(v))
+    return float(p**n) / total
+
+
+def regular_tree_qubit_bound(profile: _Callable, p: int, n: int) -> float:
+    """:func:`regular_tree_dimension_bound` expressed in qubits."""
+    return float(np.log2(regular_tree_dimension_bound(profile, p, n)))
 
 
 def profile_residual(kernel: np.ndarray, lca: np.ndarray, profile: _Callable) -> float:
