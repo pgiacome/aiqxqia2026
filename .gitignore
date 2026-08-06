@@ -15,3 +15,5 @@ papers/**/*.blg
 papers/**/*.fdb_latexmk
 papers/**/*.fls
 papers/**/*.synctex.gz
+papers/**/*.xmpi
+papers/**/*.xmpdata

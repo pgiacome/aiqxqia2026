@@ -1,0 +1,100 @@
+%% AIQxQIA 2026 -- CEUR-WS submission.
+%% Single-blind: author names ARE included, so the `singleblind' class option
+%% (which anonymises) is deliberately NOT passed. One column is the ceurart default
+%% and the CEUR house layout.
+\documentclass{ceurart}
+
+%% Latin Modern: scalable Type1, so microtype's font expansion works. Without it,
+%% T1 Computer Modern falls back to bitmaps here (no cm-super installed) and pdfTeX
+%% aborts with "auto expansion is only possible with scalable fonts".
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{todonotes}
+\setuptodonotes{inline,color=yellow!40}
+
+\input{numbers}
+
+%% ---------------------------------------------------------------- notation macros
+\newcommand{\Zp}{\mathbb{Z}_p}
+\newcommand{\Zpn}{\mathbb{Z}/p^{n}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Nat}{\mathbb{N}}
+\newcommand{\vp}{v_p}
+\newcommand{\lcadepth}{\lambda}
+\newcommand{\pathstate}[1]{\Phi_f(#1)}
+\newcommand{\fid}[2]{\lvert\langle #1 \mid #2 \rangle\rvert^{2}}
+\newcommand{\ket}[1]{\lvert #1 \rangle}
+\newcommand{\bra}[1]{\langle #1 \rvert}
+\newcommand{\braket}[2]{\langle #1 \mid #2 \rangle}
+\newcommand{\abs}[1]{\lvert #1 \rvert}
+\newcommand{\norm}[1]{\lVert #1 \rVert}
+\DeclareMathOperator{\anc}{anc}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator*{\Tr}{tr}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+\begin{document}
+
+\copyrightyear{2026}
+\copyrightclause{Copyright for this paper by its author.
+  Use permitted under Creative Commons License Attribution 4.0
+  International (CC BY 4.0).}
+
+\conference{AIQxQIA 2026: International Workshop on AI for Quantum and Quantum for AI,
+  2026}
+
+\title{Ultrametric Quantum Kernels: Exact $p$-adic Feature Maps for Hierarchical Data}
+
+\author[1]{TODO-AUTHOR}[
+  email=todo@example.org,
+]
+\address[1]{TODO-AFFILIATION}
+
+\todo{BLOCKER: author name, affiliation, ORCID and email are placeholders. The paper
+must not be uploaded while the string TODO-AUTHOR appears anywhere in the source.}
+
+\begin{abstract}
+  \todo{Written last, once every number is final.}
+\end{abstract}
+
+\begin{keywords}
+  quantum machine learning \sep
+  quantum kernels \sep
+  ultrametric spaces \sep
+  $p$-adic numbers \sep
+  hierarchical representation learning
+\end{keywords}
+
+\maketitle
+
+\input{sections/01-introduction}
+\input{sections/02-preliminaries}
+\input{sections/03-problem}
+\input{sections/04-theorem-a}
+\input{sections/05-theorem-b}
+\input{sections/06-theorem-c}
+\input{sections/07-reuploading}
+\input{sections/08-experiments}
+\input{sections/09-related-work}
+\input{sections/10-limitations}
+\input{sections/11-conclusion}
+
+\section*{Declaration on Generative AI}
+\todo{Complete per the CEUR-WS generative-AI disclosure policy in force at submission.}
+
+\bibliographystyle{elsarticle-num-names}
+\bibliography{refs}
+
+\end{document}
