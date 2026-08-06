@@ -18,7 +18,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["collect", "fmt"]
+__all__ = ["collect", "dataset_table", "e1_table", "e2_table", "fmt"]
 
 
 def _newest(root: Path, prefix: str) -> dict[str, Any]:
@@ -149,6 +149,108 @@ def _word(n: int) -> str:
     return {2: "Two", 3: "Three", 5: "Five"}[n]
 
 
+def _all_runs(outputs: Path, prefix: str) -> list[dict[str, Any]]:
+    """Every run of an experiment, newest per dataset, oldest first."""
+    by_dataset: dict[str, dict[str, Any]] = {}
+    for path in sorted(outputs.glob(f"{prefix}_*/results.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        by_dataset[str(payload.get("dataset", path.parent.name))] = payload
+    order = ["synthetic", "wordnet", "go", "ncbi"]
+    return [by_dataset[d] for d in order if d in by_dataset]
+
+
+PRETTY = {
+    "synthetic": r"synthetic $2$-ary",
+    "wordnet": "WordNet",
+    "go": "Gene Ontology",
+    "ncbi": "NCBI Mammalia",
+    "path_state": "path state (ours)",
+    "angle": "angle",
+    "basis": "basis",
+    "zz": "ZZ / IQP",
+    "random_product": "random product",
+    "block_product": "block product",
+    "rbf_integer": "RBF (integer)",
+    "rbf_onehot": "RBF (one-hot)",
+}
+
+
+def e1_table(outputs: Path) -> str:
+    """Per-dataset E1 summary: violations, level constancy, resolution depth."""
+    runs = _all_runs(outputs, "e1_ultrametricity")
+    rows = ["\\begin{tabular}{llrrr}", "\\toprule",
+            "dataset & encoding & violation rate & level constancy "
+            "& resolution \\\\", "\\midrule"]
+    for run in runs:
+        recs = [r for r in run["records"] if "violations" in r]
+        wanted = ["path_state", "basis", "angle", "zz", "random_product"]
+        first = True
+        for name in wanted:
+            rec = next((r for r in recs if r["encoding"] == name), None)
+            if rec is None:
+                continue
+            label = PRETTY[str(run["dataset"])] if first else ""
+            first = False
+            emph = r"\textbf{%s}" if name == "path_state" else "%s"
+            rows.append(
+                f"{label} & {emph % PRETTY[name]} & ${fmt(rec['violation_rate'])}$ & "
+                f"${fmt(rec['level_constancy'])}$ & "
+                f"{rec['resolution_depth']} / {run['max_resolution_depth']} \\\\"
+            )
+        rows.append("\\addlinespace")
+    rows.append("\\bottomrule")
+    rows.append("\\end{tabular}")
+    return "\n".join(rows)
+
+
+def e2_table(outputs: Path) -> str:
+    """Per-dataset E2 summary: leaf accuracy and Spearman rho."""
+    runs = _all_runs(outputs, "e2_classification")
+    rows = ["\\begin{tabular}{llrr}", "\\toprule",
+            "dataset & encoding & leaf accuracy & Spearman $\\rho$ \\\\",
+            "\\midrule"]
+    for run in runs:
+        recs = [r for r in run["records"] if "leaf_accuracy" in r]
+        wanted = ["path_state", "angle", "zz", "random_product", "basis", "rbf_integer"]
+        first = True
+        for name in wanted:
+            rec = next((r for r in recs if r["encoding"] == name), None)
+            if rec is None:
+                continue
+            label = PRETTY[str(run["dataset"])] if first else ""
+            first = False
+            emph = r"\textbf{%s}" if name == "path_state" else "%s"
+            rho = rec["spearman_rho"]
+            rho_cell = "---" if rho is None else f"${fmt(rho)}$"
+            rows.append(
+                f"{label} & {emph % PRETTY[name]} & "
+                f"${fmt(rec['leaf_accuracy'])} \\pm {fmt(rec['leaf_accuracy_std'])}$ & "
+                f"{rho_cell} \\\\"
+            )
+        rows.append("\\addlinespace")
+    rows.append("\\bottomrule")
+    rows.append("\\end{tabular}")
+    return "\n".join(rows)
+
+
+def dataset_table(outputs: Path) -> str:
+    """Shapes of the four hierarchies after the preprocessing pipeline."""
+    runs = _all_runs(outputs, "e1_ultrametricity")
+    rows = ["\\begin{tabular}{lrrrrrr}", "\\toprule",
+            "dataset & source nodes & source height & sampled leaves & nodes & "
+            "radix & qubits \\\\", "\\midrule"]
+    for run in runs:
+        rows.append(
+            f"{PRETTY[str(run['dataset'])]} & ${fmt(run['source_nodes'])}$ & "
+            f"${fmt(run['source_height'])}$ & ${fmt(run['leaves'])}$ & "
+            f"${fmt(run['tree_nodes'])}$ & ${fmt(run['radix'])}$ & "
+            f"${fmt(run['path_state_qubits'])}$ \\\\"
+        )
+    rows.append("\\bottomrule")
+    rows.append("\\end{tabular}")
+    return "\n".join(rows)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--outputs", type=Path, default=Path("outputs"))
@@ -160,6 +262,17 @@ def main() -> None:
     args.target.parent.mkdir(parents=True, exist_ok=True)
     args.target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     logger.info("Wrote %d macros to %s", len(lines) - 2, args.target)
+
+    tables = args.target.parent / "tables"
+    tables.mkdir(exist_ok=True)
+    banner = "% Generated by code/experiments/collect_numbers.py -- do not edit.\n"
+    for name, builder in (
+        ("e1-ultrametricity", e1_table),
+        ("e2-accuracy", e2_table),
+        ("datasets", dataset_table),
+    ):
+        (tables / f"{name}.tex").write_text(banner + builder(args.outputs) + "\n", "utf-8")
+        logger.info("Wrote %s", tables / f"{name}.tex")
 
 
 if __name__ == "__main__":

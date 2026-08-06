@@ -2,4 +2,80 @@
 \section{Beyond Exactness: Re-uploading and Noise}
 \label{sec:reuploading}
 
-\todo{Draft pending.}
+\subsection{Why an extension must re-upload the data}
+
+\Cref{thm:path-states} gives a fixed encoding with no trainable parameters. The obvious
+way to add expressivity is to follow it with a parametrised circuit, but that does
+nothing at all: for any unitary $W(\theta)$,
+\begin{equation}
+  \label{eq:unitary-invariance}
+  \bigl\lvert \bra{\pathstate{x}} W(\theta)^{\dagger} W(\theta) \ket{\pathstate{y}}
+  \bigr\rvert^{2} = \fid{\pathstate{x}}{\pathstate{y}} ,
+\end{equation}
+so the kernel is invariant. Any non-trivial extension must therefore re-upload the data
+between layers \citep{PerezSalinasEtAl2020DataReuploading,
+RodriguezGrasaEtAl2024NeuralQuantumKernels}. We use the family
+\begin{equation}
+  \label{eq:reupload}
+  \Phi^{(L)}(x) = W_L\, D_{\gamma}(x) \cdots W_1\, D_{\gamma}(x)\, \pathstate{x} ,
+\end{equation}
+where $D_{\gamma}(x)$ applies the phase $e^{i\gamma}$ to every node on the root-to-leaf
+path of $x$ --- the natural data-dependent diagonal on the path-state Hilbert space ---
+and each $W_\ell$ interpolates between the identity and a Haar-random unitary by a
+parameter we call the entangling strength. At $\gamma = 0$ with trivial mixers,
+\cref{eq:reupload} reduces exactly to $\pathstate{x}$, so the exact construction sits
+at the origin of the family and anchors any trade-off curve at zero distortion.
+
+We measure two quantities: the \emph{ultrametric distortion}
+\begin{equation}
+  \label{eq:distortion}
+  \mathcal{D} = \max_{x,y,z} \max\bigl(0,\; d(x,z) - \max(d(x,y), d(y,z))\bigr),
+  \qquad d = 1 - K ,
+\end{equation}
+which vanishes exactly when the induced distance is an ultrametric, and the
+kernel-target alignment as a standard proxy for usable expressivity.
+\Cref{sec:experiments} maps the resulting Pareto front.
+
+\subsection{Depolarising noise cannot break ultrametricity}
+
+Exactness is a statement about an ideal kernel, so it is fair to ask what survives on
+hardware. For the dominant global error channel the answer is: all of it.
+
+\begin{proposition}[Depolarising noise preserves ultrametricity]
+  \label{prop:depolarising}
+  Let $K$ be ultrametric with non-decreasing profile $f$ on states of dimension $D$,
+  and let $K_r = (1-r) K + r/D$ be the kernel estimated under global depolarising noise
+  of rate $r \in [0,1]$. Then $d_r = 1 - K_r$ satisfies \cref{eq:strong-triangle} for
+  every $r$, and $K_r$ is ultrametric with profile $(1-r) f + r/D$.
+\end{proposition}
+
+\begin{proof}
+  The compute-uncompute estimator reads off the probability of the all-zeros outcome;
+  replacing the state by the maximally mixed state with probability $r$ sends that
+  probability to $1/D$, which gives the stated $K_r$. Hence
+  \begin{equation*}
+    d_r = 1 - (1-r)K - \frac{r}{D} = (1-r)\,d + r\Bigl(1 - \frac{1}{D}\Bigr),
+  \end{equation*}
+  an affine function $\varphi(t) = (1-r)t + c$ of $d$ with non-negative slope. An
+  increasing affine map preserves order and commutes with $\max$, so
+  $d(x,z) \le \max(d(x,y), d(y,z))$ implies
+  $\varphi(d(x,z)) \le \max(\varphi(d(x,y)), \varphi(d(y,z)))$, which is
+  \cref{eq:strong-triangle} for $d_r$. Applying $\varphi$ to $K = f(\lcadepth)$ gives
+  the stated profile, which is still non-decreasing.
+\end{proof}
+
+What depolarising noise destroys is not geometry but contrast. The profile is
+compressed towards the constant $1/D$, so consecutive levels become harder to tell
+apart and the resolution depth of \Cref{def:diagnostics} falls, even though level
+constancy stays exactly zero. \Cref{sec:experiments} measures where that collapse
+happens.
+
+Sampling noise behaves in the opposite way, and the reason is specific to ultrametric
+spaces. Because every triangle in an ultrametric is isoceles with its two longest sides
+equal, a constant fraction of triples --- $\TieFraction$ of them on the tree used in
+our noise experiment --- satisfies \cref{eq:strong-triangle} \emph{with equality}. An
+arbitrarily small independent perturbation flips about half of those into violations.
+Counting violations is therefore an unstable statistic at low noise: it saturates
+rather than decaying as the shot budget grows. The violation \emph{magnitude} is the
+meaningful quantity, and it decays as $O(1/\sqrt{\text{shots}})$ as one would expect.
+We return to this in \Cref{subsec:e5}.

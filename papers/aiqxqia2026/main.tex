@@ -9,10 +9,15 @@
 %% aborts with "auto expansion is only possible with scalable fonts".
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{trees}
 \usepackage{todonotes}
 \setuptodonotes{inline,color=yellow!40}
+%% cleveref must be loaded after hyperref, which ceurart already pulls in.
+\usepackage[capitalise]{cleveref}
 
 \input{numbers}
 
@@ -25,25 +30,26 @@
 \newcommand{\vp}{v_p}
 \newcommand{\lcadepth}{\lambda}
 \newcommand{\pathstate}[1]{\Phi_f(#1)}
-\newcommand{\fid}[2]{\lvert\langle #1 \mid #2 \rangle\rvert^{2}}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 \newcommand{\ket}[1]{\lvert #1 \rangle}
 \newcommand{\bra}[1]{\langle #1 \rvert}
 \newcommand{\braket}[2]{\langle #1 \mid #2 \rangle}
-\newcommand{\abs}[1]{\lvert #1 \rvert}
-\newcommand{\norm}[1]{\lVert #1 \rVert}
+\newcommand{\fid}[2]{\bigl\lvert\braket{#1}{#2}\bigr\rvert^{2}}
 \DeclareMathOperator{\anc}{anc}
 \DeclareMathOperator{\rank}{rank}
-\DeclareMathOperator*{\Tr}{tr}
+\DeclareMathOperator{\tr}{tr}
 
 \theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{lemma}[theorem]{Lemma}
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
-\newtheorem{remark}[theorem]{Remark}
 \newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
 
 \begin{document}
 
@@ -66,7 +72,29 @@
 must not be uploaded while the string TODO-AUTHOR appears anywhere in the source.}
 
 \begin{abstract}
-  \todo{Written last, once every number is final.}
+  A quantum kernel compares data through the fidelity of an encoding, so the geometry
+  the model can express is fixed before any training happens. Hierarchical data ---
+  taxonomies, ontologies, phylogenies --- is not Euclidean but ultrametric, and we ask
+  which quantum feature maps induce an exactly ultrametric kernel. We give two
+  obstructions and a matching construction. First, no product feature map does, whatever
+  its local dimensions: multiplicativity across digits limits any such encoding to a
+  bounded resolution depth, which covers angle and computational-basis encodings.
+  Second, and independently, the Gram matrix of any exact realisation forces a
+  dimension of at least $L^{2} / \sum_{x,y} K(x,y)$ on $L$ points; on the $p$-adic tree
+  with a geometrically decaying profile this exceeds $2^{n}$ for every $p \ge 3$, so no
+  $n$-qubit encoding suffices --- including the entangling IQP and ZZ maps the first
+  argument cannot reach. Third, \emph{path states}, superpositions over a leaf's
+  root-to-leaf ancestor chain with amplitudes read off the target profile, realise
+  precisely the strictly monotone ultrametric kernels, on arbitrary rooted trees, using
+  a number of qubits within an additive constant of that lower bound. We further show
+  that global depolarising noise cannot break ultrametricity at any rate, since it acts
+  on distances as an increasing affine map, and we measure the shot budget that finite
+  sampling demands. Experiments on WordNet, Gene Ontology and the NCBI taxonomy confirm
+  exactness to machine precision and separate ultrametricity from usable resolution: a
+  basis encoding is ultrametric while resolving nothing. We claim no quantum speedup in
+  kernel evaluation, and say so throughout; the contribution is a constraint on
+  encoding design and an optimal-width encoding for models where no closed form
+  survives.
 \end{abstract}
 
 \begin{keywords}

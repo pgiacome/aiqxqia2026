@@ -2,4 +2,112 @@
 \section{A Dimension Lower Bound for Arbitrary Encodings}
 \label{sec:theorem-b}
 
-\todo{Draft pending.}
+\Cref{thm:product-nogo} exploits the structure of the encoding. The bound in this
+section uses none: it constrains any map whatsoever into a space of given dimension,
+and so applies to entangling encodings, hardware-efficient ansätze, and designs not yet
+proposed.
+
+\begin{theorem}[Dimension lower bound]
+  \label{thm:dimension-bound}
+  Let $\Phi : X \to \C^{D}$ send $L$ points to unit vectors with
+  $\fid{\Phi(x)}{\Phi(y)} = K(x,y)$. Then
+  \begin{equation}
+    \label{eq:dimension-bound}
+    D \;\ge\; \rank G \;\ge\; \frac{L^{2}}{\sum_{x,y} K(x,y)} ,
+  \end{equation}
+  where $G$ is the Gram matrix of the $\Phi(x)$.
+\end{theorem}
+
+\begin{proof}
+  The vectors $\Phi(x)$ lie in $\C^{D}$, so $\rank G \le D$. Let $r = \rank G$ and let
+  $\mu_1, \dots, \mu_r$ be the non-zero eigenvalues of $G$, which are real and
+  non-negative because $G$ is positive semi-definite. Since $\norm{\Phi(x)} = 1$ we
+  have $G_{xx} = 1$ and hence $\tr G = \sum_k \mu_k = L$. By Cauchy--Schwarz applied to
+  the vector of eigenvalues,
+  \begin{equation}
+    \label{eq:frobenius}
+    \norm{G}_F^{2} = \sum_{k=1}^{r} \mu_k^{2}
+    \;\ge\; \frac{1}{r}\Bigl(\sum_{k=1}^{r} \mu_k\Bigr)^{2} = \frac{L^{2}}{r} .
+  \end{equation}
+  Finally $\norm{G}_F^{2} = \sum_{x,y} \abs{G_{xy}}^{2} = \sum_{x,y} K(x,y)$ by the
+  definition of the fidelity kernel. Rearranging \cref{eq:frobenius} gives
+  \cref{eq:dimension-bound}.
+\end{proof}
+
+The bound is a statement about how \emph{concentrated} the kernel is. A kernel close to
+the all-ones matrix has $\sum_{x,y} K \approx L^{2}$ and demands only one dimension,
+correctly: a near-constant kernel is realisable by a single state. A kernel close to
+the identity has $\sum_{x,y} K \approx L$ and demands $L$ dimensions, also correctly.
+Strictly monotone ultrametric profiles decay fast enough to sit near the second regime,
+and the following corollary makes that quantitative.
+
+\begin{corollary}[No $n$-qubit encoding suffices for $p \ge 3$]
+  \label{cor:no-n-qubit}
+  On the regular $p$-ary tree of depth $n$ with the geometric profile
+  $f(v) = p^{-(n-v)s}$, put
+  \begin{equation}
+    \label{eq:row-sum}
+    S(p, s, n) \;=\; 1 + \frac{p-1}{p} \sum_{m=1}^{n} p^{\,m(1-s)} .
+  \end{equation}
+  Then any exact realisation needs $D \ge p^{n} / S(p,s,n)$, that is, at least
+  $n \log_2 p - \log_2 S(p,s,n)$ qubits. For $s > 1$ the sum converges and
+  $S(p,s,n) \le S(p,s) < \infty$ uniformly in $n$, so the qubit requirement grows like
+  $n \log_2 p$. For every $p \ge 3$ it exceeds $n$, and hence \emph{no $n$-qubit
+  encoding of any kind realises a strictly monotone ultrametric kernel on $\Zpn$}.
+\end{corollary}
+
+\begin{proof}
+  Fix a leaf $x$. The number of leaves $y$ with $\lcadepth(x,y) = v$ is
+  $p^{\,n-v} - p^{\,n-v-1}$ for $v < n$, and $1$ for $v = n$. Hence
+  $\sum_{y} f(\lcadepth(x,y)) = S(p,s,n)$ after substituting $m = n - v$, and by
+  symmetry $\sum_{x,y} K = p^{n} S(p,s,n)$. Inserting this and $L = p^{n}$ into
+  \cref{eq:dimension-bound} gives the bound. For $s > 1$ the geometric series
+  $\sum_m p^{\,m(1-s)}$ converges, so $S$ is bounded uniformly in $n$.
+\end{proof}
+
+\begin{example}
+  \label{ex:crossing}
+  At $p = 3$, $s = 2$ we get $S = 4/3$ in the limit, so the requirement is
+  $q \ge n \log_2 3 - \log_2(4/3) \approx 1.585\,n - 0.415$, above $n$ for every
+  $n \ge 1$. Concretely, at $n = 5$ the bound is $\QubitBoundPThree$ qubits against the
+  $5$ that an angle or ZZ encoding provides, and at $p = 5$ it is $\QubitBoundPFive$.
+  \Cref{fig:e3-ablation}(b) plots the crossing.
+\end{example}
+
+\begin{remark}[The hypothesis $s > 1$ is load-bearing]
+  \label{rem:s-greater-one}
+  At $s = 1$ every term of \cref{eq:row-sum} equals $1$ and
+  $S(p,1,n) = 1 + n(p-1)/p$ grows with the depth, so the bound degrades to
+  $p^{n} / \Theta(n)$ and \Cref{cor:no-n-qubit} no longer follows from it. This is not
+  an artefact of the proof: a slowly decaying profile really is easier to represent,
+  because it is closer to constant. We record the boundary rather than quietly assuming
+  it away (\texttt{test\_theorem\_b\_requires\_s\_greater\_than\_one}).
+\end{remark}
+
+\begin{remark}[Theorems A and B are independent]
+  \label{rem:complementarity}
+  At $p = 2$ the bound reads $q \ge n - \log_2 S(2,s) \approx n - 0.58$, which does
+  \emph{not} exceed $n$. \Cref{thm:dimension-bound} therefore leaves $n$-qubit
+  encodings on binary trees open, and it is \Cref{thm:product-nogo}'s structural
+  argument that closes the product case there. Conversely \Cref{thm:product-nogo} says
+  nothing about entangling maps at any radix. Neither theorem subsumes the other, and
+  we present them as covering different regimes rather than as a chain
+  (\texttt{test\_theorem\_b\_does\_not\_subsume\_theorem\_a\_at\_radix\_two}).
+\end{remark}
+
+\paragraph{Numerical verification.}
+The closed form \cref{eq:row-sum} matches the empirical row sum to machine precision
+(\texttt{test\_theorem\_b\_closed\_form\_row\_sum}); the bound exceeds $2^{n}$ for
+$(p,n) \in \{(3,2),(3,3),(3,4),(5,2)\}$
+(\texttt{test\_theorem\_b\_rules\_out\_every\_n\_qubit\_encoding}); and the ZZ feature
+map, which lives in $2^{n}$ dimensions, falls below the bound and indeed fails to
+reproduce the profile
+(\texttt{test\_theorem\_b\_zz\_feature\_map\_is\_below\_the\_bound}).
+
+Two cautions on applying \cref{eq:dimension-bound} in practice. Evaluated on a
+subsample of $L'$ leaves it remains valid --- restricting the point set can only make
+the kernel easier to realise --- but it is capped at $L'$, so a subsampled estimate
+understates the bound and saturates at $\log_2 L'$ qubits. The figures in
+\Cref{sec:experiments} therefore use the closed form. And the bound constrains
+dimension, not circuit depth: it says nothing about how hard the required state is to
+prepare, which is the subject of \Cref{sec:theorem-c}.

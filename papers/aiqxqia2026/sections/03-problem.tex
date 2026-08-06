@@ -2,4 +2,95 @@
 \section{Ultrametric Quantum Kernels}
 \label{sec:problem}
 
-\todo{Draft pending.}
+Throughout, $T$ is a finite rooted tree whose leaves all sit at depth $n$ (a leaf that
+is shallower is extended by a chain of unary nodes, which changes no lowest common
+ancestor). For a leaf $x$ and $0 \le i \le n$ we write $\anc_i(x)$ for its depth-$i$
+ancestor, so $\anc_0(x)$ is the root and $\anc_n(x) = x$, and
+$\lcadepth(x, y) = \max\{\, i : \anc_i(x) = \anc_i(y) \,\}$ for the depth at which two
+leaves meet. On the regular $p$-ary tree, $\lcadepth = v$ of \cref{eq:valuation}.
+
+\begin{definition}[Ultrametric kernel]
+  \label{def:ultrametric-kernel}
+  A kernel $K : X \times X \to [0,1]$ is \emph{ultrametric with profile $f$} if there
+  is a function $f : \{0, \dots, n\} \to [0,1]$ with $f(n) = 1$ such that
+  $K(x, y) = f\bigl(\lcadepth(x,y)\bigr)$ for all leaves $x, y$. The profile is
+  \emph{strictly monotone} if $f$ is strictly increasing and $f(0) > 0$.
+\end{definition}
+
+Being ultrametric with \emph{some} profile is the same as being constant on each level
+of the lowest-common-ancestor relation, a property we call \emph{level constancy}. It
+is what makes the induced distance an ultrametric.
+
+\begin{lemma}
+  \label{lem:distance-is-ultrametric}
+  If $K$ is ultrametric with a non-decreasing profile $f$, then $d = 1 - K$ is an
+  ultrametric on the leaves of $T$.
+\end{lemma}
+
+\begin{proof}
+  Lowest-common-ancestor depth satisfies
+  $\lcadepth(x,z) \ge \min\bigl(\lcadepth(x,y), \lcadepth(y,z)\bigr)$, because the
+  ancestors of a leaf form a chain: if $x$ and $y$ agree down to depth $i$ and $y$ and
+  $z$ agree down to depth $i$, then $x$ and $z$ agree down to depth $i$. Applying the
+  non-decreasing $f$ preserves this and reverses it under $d = 1 - f$, giving
+  \cref{eq:strong-triangle}. Non-degeneracy follows from $f(n) = 1$ and $f(v) < 1$ for
+  $v < n$.
+\end{proof}
+
+\subsection{Two diagnostics, because one is not enough}
+\label{subsec:diagnostics}
+
+It is tempting to certify an encoding by counting violations of
+\cref{eq:strong-triangle}. That test is necessary but far from sufficient, and the gap
+is not a technicality. Computational-basis encoding sends distinct leaves to orthogonal
+states, so its kernel is the identity and its induced distance is the discrete metric
+--- which is an ultrametric, with zero violations, while collapsing the hierarchy to a
+single bit of information. It is the degenerate corner of
+\Cref{def:ultrametric-kernel}, with $f = \mathbf{1}[v = n]$.
+
+We therefore report two quantities throughout.
+
+\begin{definition}[Level constancy and resolution depth]
+  \label{def:diagnostics}
+  For a kernel $K$ on leaves with lowest-common-ancestor matrix $\lcadepth$, the
+  \emph{level constancy} is
+  $\max_{v} \bigl( \max_{\lcadepth(x,y)=v} K(x,y) - \min_{\lcadepth(x,y)=v} K(x,y)
+  \bigr)$, which vanishes exactly when $K$ is ultrametric with some profile. The
+  \emph{resolution depth} is the number of distinct values taken by the level means of
+  $K$, up to a tolerance; it is $n+1$ for a strictly monotone profile and $2$ for the
+  discrete metric.
+\end{definition}
+
+An encoding is useful for hierarchical data only if it scores well on both: level
+constancy zero, resolution depth full. \Cref{thm:path-states} exhibits the only family
+that does.
+
+\subsection{Product and block-product feature maps}
+
+\begin{definition}[Product feature map]
+  \label{def:product-map}
+  A feature map on $\Zpn$ is a \emph{product map} if
+  $\Phi(x) = \bigotimes_{i=1}^{n} \ket{\psi_i(x_i)}$ for unit vectors
+  $\ket{\psi_i(a)} \in \C^{d_i}$, where factor $i$ depends only on digit $i$ and the
+  local dimensions $d_i$ are arbitrary. Writing
+  $g_i(a,b) = \fid{\psi_i(a)}{\psi_i(b)}$, we have $g_i(a,a) = 1$ and
+  \begin{equation}
+    \label{eq:multiplicative}
+    K(x, y) = \prod_{i=1}^{n} g_i(x_i, y_i).
+  \end{equation}
+\end{definition}
+
+\begin{definition}[Block-product feature map]
+  \label{def:block-product-map}
+  Let $\mathcal{B}$ be a partition of the levels $\{1, \dots, n\}$ into consecutive
+  blocks. A \emph{block-product map} is
+  $\Phi(x) = \bigotimes_{B \in \mathcal{B}} \ket{\psi_B(x_B)}$, where $x_B$ is the
+  tuple of digits in block $B$. Its kernel factorises across blocks in the same way.
+  A product map is the case in which every block is a single level.
+\end{definition}
+
+Block-product maps let a bounded number of levels interact arbitrarily while keeping
+the tensor structure across blocks. They are the natural strengthening of
+\Cref{def:product-map}, and \Cref{thm:product-nogo} handles both at once. They do not,
+however, cover maps such as the ZZ feature map, whose all-pairs couplings leave no
+tensor factorisation at all; that case is \Cref{sec:theorem-b}.

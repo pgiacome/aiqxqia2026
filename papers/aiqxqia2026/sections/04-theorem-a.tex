@@ -2,4 +2,97 @@
 \section{A No-Go Theorem for Product Encodings}
 \label{sec:theorem-a}
 
-\todo{Draft pending.}
+\begin{theorem}[Product no-go]
+  \label{thm:product-nogo}
+  Let $\Phi$ be a block-product feature map on $\Zpn$ (\Cref{def:block-product-map})
+  whose fidelity kernel is ultrametric with profile $f$, and set
+  $v^{*} = \min\{\, v : f(v) > 0 \,\}$. Let $B^{*}$ be the block containing level
+  $v^{*}+1$. Then for every block $B$ all of whose levels exceed $\max B^{*}$, and all
+  digit tuples $a, b$,
+  \begin{equation}
+    \label{eq:trivial-block}
+    \abs{\braket{\psi_B(a)}{\psi_B(b)}} = 1 .
+  \end{equation}
+  Consequently $f$ takes at most the three values $\{0, f(v^{*}), 1\}$, and $\Phi$
+  resolves the tree only to depth $\max B^{*}$. In particular, for a product map with
+  $n \ge 2$, no strictly monotone profile is realisable.
+\end{theorem}
+
+\begin{proof}
+  The argument uses exactly one property of the encoding: fidelity is multiplicative
+  across tensor factors, \cref{eq:multiplicative}. We give it for $v^{*} = 0$; the
+  general case shifts every index by $v^{*}$, since all pairs meeting above depth
+  $v^{*}$ have kernel value $0$ and impose no constraint.
+
+  Let $B$ be a block whose levels all exceed $\max B^{*}$, and fix digit tuples
+  $a \ne b$ for it. Choose leaves $x, y$ that differ in level $1$ and agree at every
+  other level, with $x_B = a$. Then $\lcadepth(x,y) = 0$, and since every factor other
+  than $B^{*}$ contributes $g(x, x) = 1$,
+  \begin{equation}
+    \label{eq:base-value}
+    f(0) = K(x, y) = \fid{\psi_{B^{*}}(x_{B^{*}})}{\psi_{B^{*}}(y_{B^{*}})} .
+  \end{equation}
+
+  Now let $y'$ agree with $y$ everywhere except on $B$, where $y'_B = b$. Because $x$
+  and $y'$ still differ at level $1$, and $B$ does not contain level $1$, we still have
+  $\lcadepth(x, y') = 0$ and therefore $K(x, y') = f(0)$. But multiplicativity gives
+  \begin{equation*}
+    K(x, y')
+    = \fid{\psi_{B^{*}}(x_{B^{*}})}{\psi_{B^{*}}(y_{B^{*}})} \cdot
+      \fid{\psi_{B}(a)}{\psi_{B}(b)}
+    = f(0) \cdot \fid{\psi_B(a)}{\psi_B(b)} .
+  \end{equation*}
+  Since $f(0) > 0$ by the choice $v^{*} = 0$, this forces
+  $\fid{\psi_B(a)}{\psi_B(b)} = 1$, which is \cref{eq:trivial-block}: the states of
+  block $B$ coincide up to a global phase, and $B$ carries no information about the
+  data.
+
+  Every block beyond $B^{*}$ being trivial, $K$ depends only on the digits in blocks up
+  to $B^{*}$. Two leaves agreeing down to depth $\max B^{*}$ therefore have
+  $K(x,y) = 1$, so $f(v) = 1$ for all $v > \max B^{*}$ --- the tree is resolved no
+  deeper. Level constancy forces the common value $f(0)$ on all pairs meeting at the
+  root, so together with the vanishing values below $v^{*}$ the profile takes at most
+  the three values $\{0, f(v^{*}), 1\}$. For a product map every block is a single
+  level, $\max B^{*} = v^{*}+1$, and a strictly monotone profile would need $n+1$
+  distinct values, which exceeds three whenever $n \ge 2$.
+\end{proof}
+
+The proof turns on multiplicativity alone. It is therefore indifferent to the local
+dimensions $d_i$, to whether the local states are real or complex, and to how they were
+chosen --- which is what makes it a statement about a class of encodings rather than
+about particular instances.
+
+\begin{corollary}
+  \label{cor:standard-encodings}
+  On $\Zpn$ with $n \ge 2$, none of the following induces a strictly monotone
+  ultrametric kernel: angle encoding with one qubit per digit; computational-basis
+  encoding; and any first-order Pauli-$Z$ feature map, whose phase is a sum of
+  single-digit terms and which is therefore a product map.
+\end{corollary}
+
+Basis encoding is the extreme case and deserves a sentence, because it is the one that
+can be mistaken for a success. It attains $v^{*} = n$: its kernel is the identity, its
+induced distance is the discrete metric, and it satisfies \cref{eq:strong-triangle}
+with zero violations while resolving nothing. It is a corner of
+\Cref{thm:product-nogo}, not a counterexample to it, and it is the reason
+\Cref{subsec:diagnostics} insists on reporting resolution depth alongside violations.
+
+\begin{remark}[What this theorem does not cover]
+  \label{rem:not-covered}
+  A ZZ or IQP feature map applies all-pairs couplings between qubits, so its state does
+  not factorise across digits and \cref{eq:multiplicative} fails. \Cref{thm:product-nogo}
+  says nothing about it. We do not patch the gap by weakening the claim; we close it in
+  \Cref{sec:theorem-b} with an argument that ignores the structure of the encoding
+  entirely.
+\end{remark}
+
+\paragraph{Numerical verification.}
+Randomly drawn product maps are never level-constant for
+$(p, n) \in \{(2,3), (3,2), (2,4), (5,2)\}$ across five seeds
+(\texttt{test\_theorem\_a\_random\_product\_maps\_are\_never\_strictly\_monotone}). A
+product map built to satisfy the conclusion --- one non-trivial level, the rest trivial
+--- yields exactly two distinct kernel values, as predicted
+(\texttt{test\_theorem\_a\_ultrametric\_product\_map\_resolves\_only\_one\_level}), and
+switching on a second non-trivial level destroys level constancy, which is the
+contradiction the proof derives
+(\texttt{test\_theorem\_a\_a\_nontrivial\_deep\_factor\_destroys\_ultrametricity}).

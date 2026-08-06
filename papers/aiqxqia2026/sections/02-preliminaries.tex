@@ -2,4 +2,95 @@
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-\todo{Draft pending.}
+\subsection{$p$-adic integers and the regular tree}
+
+Fix a prime $p$ and an integer $n \ge 1$. Write $X = \Zpn$ and expand each $x \in X$ in
+base $p$ as $x = \sum_{i=1}^{n} x_i p^{\,i-1}$ with digits $x_i \in \{0, \dots, p-1\}$.
+The $p$-adic valuation of a non-zero integer is the exponent of the largest power of
+$p$ dividing it, and the $p$-adic absolute value is $\abs{m}_p = p^{-\vp(m)}$. On $X$
+we use the truncated valuation
+\begin{equation}
+  \label{eq:valuation}
+  v(x, y) = \min\bigl(\vp(x - y),\, n\bigr)
+  = \#\{\text{matching least-significant base-$p$ digits of $x$ and $y$}\} .
+\end{equation}
+
+Identify $X$ with the leaves of the regular $p$-ary tree of depth $n$, a leaf $x$
+sitting under the chain of residue classes $x \bmod p, \, x \bmod p^{2}, \dots$. Then
+the depth-$i$ ancestor of $x$ is the class $x \bmod p^{i}$, and $v(x,y)$ is exactly the
+depth of the lowest common ancestor of $x$ and $y$.
+
+\begin{example}
+  \label{ex:padic-tree}
+  Take $p = 3$, $n = 2$, so $X = \{0, \dots, 8\}$. The leaves $x = 2$ and $y = 5$ have
+  $x - y = -3$, hence $\vp(x-y) = 1$: they agree in the least-significant digit
+  ($2 \equiv 5 \bmod 3$) and differ in the next, so they meet at depth $1$. The leaves
+  $2$ and $4$ differ already in the least-significant digit and meet only at the root,
+  at depth~$0$. \Cref{fig:padic-tree} draws the tree.
+\end{example}
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[
+      level distance = 11mm,
+      level 1/.style = {sibling distance = 26mm},
+      level 2/.style = {sibling distance = 8.5mm},
+      every node/.style = {font=\footnotesize},
+      dot/.style = {circle, draw, inner sep = 1.1pt, fill = black},
+    ]
+    \node[dot, label=above:{root}] {}
+      child {node[dot, label=left:{$0$}] {}
+        child {node[dot, label=below:{$0$}] {}}
+        child {node[dot, label=below:{$3$}] {}}
+        child {node[dot, label=below:{$6$}] {}}}
+      child {node[dot, label=left:{$1$}] {}
+        child {node[dot, label=below:{$1$}] {}}
+        child {node[dot, label=below:{$4$}] {}}
+        child {node[dot, label=below:{$7$}] {}}}
+      child {node[dot, label=right:{$2$}] {}
+        child {node[dot, label=below:{$2$}] {}}
+        child {node[dot, label=below:{$5$}] {}}
+        child {node[dot, label=below:{$8$}] {}}};
+  \end{tikzpicture}
+  \caption{The regular $3$-ary tree of depth $2$ for \Cref{ex:padic-tree}. Internal
+    nodes are labelled by the residue $x \bmod 3$ that defines them; leaves by
+    $x \in \mathbb{Z}/9$. Two leaves meet at depth $v(x,y) = \vp(x-y)$: the leaves $2$
+    and $5$ share a parent, the leaves $2$ and $4$ share only the root.}
+  \label{fig:padic-tree}
+\end{figure}
+
+\subsection{Ultrametric spaces}
+
+A metric $d$ on a set $X$ is an \emph{ultrametric} if it satisfies
+\cref{eq:strong-triangle} for all $x, y, z$. Two consequences matter here. First, every
+triangle is isoceles with its two longest sides equal, so a constant fraction of
+triples meets \cref{eq:strong-triangle} \emph{with equality} --- a fact that turns out
+to govern how ultrametricity behaves under sampling noise
+(\Cref{sec:experiments}). Second, the closed balls of an ultrametric space are nested
+or disjoint, never partially overlapping, which is precisely the combinatorics of a
+rooted tree.
+
+Real hierarchical data is rarely exactly ultrametric, and quantifying the discrepancy
+is an active question \citep{Bradley2025LocalUltrametricity}. Our concern is the
+complementary one: given that the target geometry \emph{is} ultrametric, which
+encodings can represent it without distortion.
+
+\subsection{Quantum feature maps and fidelity kernels}
+
+A quantum feature map is a function $\Phi : X \to \C^{D}$ with $\norm{\Phi(x)} = 1$,
+realised in practice by a state-preparation circuit on $\lceil \log_2 D \rceil$ qubits.
+Its fidelity kernel is \cref{eq:fidelity-kernel}. Writing
+$G_{xy} = \braket{\Phi(x)}{\Phi(y)}$ for the Gram matrix of the feature vectors, we
+have $K = \abs{G}^{\circ 2}$ entrywise, and $G$ is positive semi-definite with
+$G_{xx} = 1$. Since the Schur product of positive semi-definite matrices is positive
+semi-definite, $K$ is a valid kernel for any $\Phi$.
+
+Two families of encoding recur below. An \emph{angle encoding} assigns one qubit per
+digit, $\ket{\psi_i(a)} = \cos(\theta_a/2)\ket{0} + \sin(\theta_a/2)\ket{1}$, and takes
+the tensor product. A \emph{ZZ (or IQP-style) feature map} applies a data-dependent
+diagonal phase between layers of Hadamards,
+$\Phi(x) = \bigl(U_{\phi(x)} H^{\otimes n}\bigr)^{r}\ket{0}^{\otimes n}$, with the
+phase carrying both single-qubit and pairwise terms
+\citep{HavlicekEtAl2019QuantumEnhanced}. The pairwise terms make the ZZ map entangling,
+which is exactly why \Cref{thm:product-nogo} does not apply to it and
+\Cref{thm:dimension-bound} must.

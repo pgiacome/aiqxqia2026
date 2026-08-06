@@ -2,6 +2,63 @@
 \section{Related Work}
 \label{sec:related-work}
 
-\todo{Draft pending. The citations below are placed so that every verified entry is
-exercised by the build; prose replaces them in Task 17.}
-\nocite{*}
+\paragraph{$p$-adic quantum mechanics.}
+Quantum systems over $p$-adic fields have a developed formalism.
+\citet{AnielloEtAl2023PadicQubit} construct a model of quantum states over a quadratic
+extension of $\mathbb{Q}_p$, working the $p$-adic qubit and quNit out explicitly.
+\citet{ZunigaGalindo2024QuantumWalks} and \citet{ZunigaGalindo2025TwoAdic} study
+continuous-time quantum walks whose vertex set consists of the sub-balls of a $p$-adic
+ball --- that is, on the nodes of the $p$-adic tree --- and
+\citet{ZunigaGalindoChaconCortes2025QuantumMarkov} relate discretised $p$-adic
+Schrödinger dynamics to continuous-time quantum Markov chains. Our path states live in
+$\C^{V}$ with $V$ the node set of that same tree, so the encoding of
+\Cref{thm:path-states} is a state in the Hilbert space these works take as their
+setting. We use it statically, as a feature map, rather than evolving it; connecting
+the profile $f$ to the spectrum of a $p$-adic walk generator is a natural next question
+that we do not address.
+
+\paragraph{$p$-adic machine learning.}
+The closest prior work is v-PuNNs \citep{Nguessan2025VPuNNs}, which builds neurons as
+characteristic functions of $p$-adic balls, proves a finite hierarchical approximation
+theorem, and reports strong results on WordNet, Gene Ontology and the NCBI taxonomy.
+Our benchmarks are taken from that work so the comparison is direct. The relationship
+is complementary rather than competitive: v-PuNNs is a trained architecture over
+$p$-adic weight space, while this paper characterises which \emph{quantum encodings}
+can carry ultrametric structure at all, and its accuracy is correspondingly higher
+(\Cref{subsec:e2}). Separately, \citet{Bradley2025LocalUltrametricity} asks how
+ultrametric real finite metric data actually is, recasting Vietoris--Rips complexes via
+$p$-adic Mumford curves; that question is prior to ours, which assumes the target
+geometry is ultrametric and asks what can represent it.
+
+\paragraph{Quantum kernels.}
+The fidelity kernel construction is due to
+\citet{HavlicekEtAl2019QuantumEnhanced}, and \citet{Schuld2021KernelMethods} showed
+that supervised quantum models are kernel methods, which is what makes the encoding the
+locus of inductive bias. A recent line of work establishes limits on what these kernels
+can do: exponential concentration as system size grows
+\citep{ThanasilpEtAl2024ExponentialConcentration}, double descent
+\citep{KempkesEtAl2025DoubleDescent} and benign overfitting
+\citep{TomasiEtAl2025BenignOverfitting} in their generalisation behaviour, and trainable
+embeddings as a response \citep{RodriguezGrasaEtAl2024NeuralQuantumKernels}. Those
+results concern how a quantum kernel behaves once chosen. \Cref{thm:product-nogo,%
+thm:dimension-bound} concern which kernels are reachable in the first place, and are in
+that sense upstream: our obstructions hold before any question of trainability or
+concentration arises. \Cref{thm:dimension-bound} in particular does not care whether
+the encoding concentrates, only how wide it is.
+
+\paragraph{Hierarchy in classical representation learning.}
+Hyperbolic embeddings are the established answer to representing trees
+\citep{NickelKiela2017Poincare}, and the approach has grown into a substantial
+literature \citep{HeEtAl2025HyperbolicSurvey}. Hyperbolic space achieves low but
+non-zero distortion of tree metrics, because a tree embeds into it only approximately.
+The path-state construction achieves zero distortion by design, at the cost of a
+dimension linear rather than logarithmic in the number of nodes --- and, by
+\Cref{thm:dimension-bound}, that cost is not an artefact of our construction but a
+lower bound for any exact realisation.
+
+\paragraph{Data re-uploading.}
+Interleaving data encodings with trainable layers is due to
+\citet{PerezSalinasEtAl2020DataReuploading} and remains actively developed
+\citep{CasseEtAl2024QuantumReuploading}. We use it in \Cref{sec:reuploading} not to
+increase expressivity for its own sake but as the minimal way to extend a fixed
+encoding at all, given the invariance \cref{eq:unitary-invariance}.

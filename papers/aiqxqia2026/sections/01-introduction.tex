@@ -2,4 +2,107 @@
 \section{Introduction}
 \label{sec:introduction}
 
-\todo{Draft pending.}
+A quantum kernel method embeds classical data through a feature map $\Phi$ and compares
+two points by the fidelity of their images,
+\begin{equation}
+  \label{eq:fidelity-kernel}
+  K(x, y) = \fid{\Phi(x)}{\Phi(y)} .
+\end{equation}
+Everything a downstream model can express about the similarity of $x$ and $y$ passes
+through this one number, and the number is fixed by the encoding alone. Whatever
+geometry $\Phi$ imposes on the data is imposed before any parameter is trained
+\citep{Schuld2021KernelMethods,HavlicekEtAl2019QuantumEnhanced}. The choice of encoding
+is therefore not a preprocessing detail. It is the model's inductive bias.
+
+Much of the data to which quantum machine learning is applied is hierarchical.
+Taxonomies, ontologies, phylogenies, file systems and type lattices are trees, and the
+natural notion of distance on a tree is not Euclidean but \emph{ultrametric}: distances
+obey the strong triangle inequality
+\begin{equation}
+  \label{eq:strong-triangle}
+  d(x, z) \le \max\bigl(d(x, y),\, d(y, z)\bigr),
+\end{equation}
+which is strictly stronger than the ordinary triangle inequality. Equivalently, the
+points sit at the leaves of a tree and distance decreases with the depth of the lowest
+common ancestor. The canonical ultrametric space is the ring of $p$-adic integers
+$\Zp$, whose valuation $\vp(x - y)$ counts matching least-significant base-$p$ digits
+and so measures exactly that depth.
+
+This paper asks one question.
+
+\begin{quote}
+  \emph{Which quantum feature maps induce an exactly ultrametric kernel?}
+\end{quote}
+
+We answer with two obstructions and a matching construction.
+
+\paragraph{Theorem A: product encodings cannot do it.}
+A feature map that factorises across digits induces a multiplicative kernel, and
+multiplicativity is incompatible with ultrametricity beyond the first level of the
+tree. Any such map resolves the hierarchy only to a bounded depth, whatever the local
+dimension. The argument generalises from single digits to disjoint blocks of digits, so
+it constrains a class of encodings rather than a list of them. Angle encoding and
+computational-basis encoding are corollaries.
+
+\paragraph{Theorem B: narrow encodings cannot do it either, whatever their structure.}
+The Gram matrix of any exact realisation is positive semi-definite with unit diagonal,
+which forces its rank above $L^{2} / \sum_{x,y} K(x,y)$ on $L$ points. On the regular
+$p$-ary tree with a geometrically decaying profile this exceeds $2^{n}$ for every
+$p \ge 3$: \emph{no} $n$-qubit encoding realises a strictly monotone ultrametric kernel
+on $\Zpn$, entangling or not. This is what rules out IQP and ZZ feature maps, which
+Theorem~A does not reach.
+
+\paragraph{Theorem C: path states do it exactly, at essentially the optimal width.}
+Writing $\anc_i(x)$ for the depth-$i$ ancestor of a leaf $x$, the state
+$\Phi_f(x) = \sum_i a_i \ket{\anc_i(x)}$ realises \emph{every} strictly monotone
+ultrametric kernel exactly, with amplitudes determined by the target profile. The
+construction needs $\lceil \log_2 \abs{V} \rceil$ qubits for a tree on $\abs{V}$ nodes,
+$n+1$ non-zero amplitudes, and $O(n)$ controlled rotations, and it matches Theorem~B to
+within an additive constant.
+
+Along the way we record a fourth fact with a two-line proof. Global depolarising noise
+acts on the induced distance as an increasing affine map, so it \emph{cannot} break
+ultrametricity at any error rate (\Cref{prop:depolarising}). What it destroys is
+contrast rather than geometry. Finite sampling, by contrast, breaks ultrametricity
+immediately, for a reason specific to ultrametric spaces that we make precise in
+\Cref{sec:experiments}.
+
+\subsection*{What this paper does not claim}
+
+The kernel of \Cref{thm:path-states} is $K(x,y) = f(\lcadepth(x,y))$, and the lowest
+common ancestor of two leaves is computable classically in time linear in the depth of
+the tree. \textbf{There is no quantum speedup in kernel evaluation here, and we claim
+none.} We state this in the introduction rather than leaving a reader to discover it,
+because it determines how the rest should be read. The contribution is threefold:
+a no-go that constrains current encoding practice; a dimension bound that applies to
+arbitrary encodings and so survives future encoding designs; and an explicit,
+optimal-width encoding usable as the input stage of deeper quantum models, where no
+closed form survives the subsequent layers.
+
+\subsection*{Contributions}
+
+\begin{itemize}
+  \item[\textbf{C1}] A no-go theorem for product feature maps
+    (\Cref{thm:product-nogo}), generalised to block-product maps with blocks of
+    bounded size, with corollaries for angle and computational-basis encodings.
+  \item[\textbf{C2}] A dimension lower bound for \emph{arbitrary} feature maps
+    (\Cref{thm:dimension-bound}), which rules out every $n$-qubit encoding on $\Zpn$
+    for $p \ge 3$ and covers the entangling maps Theorem~A cannot reach.
+  \item[\textbf{C3}] An exact construction (\Cref{thm:path-states}) realising precisely
+    the strictly monotone ultrametric kernels, with a resource count matching C2 to
+    within an additive constant, and a converse characterising all realisations up to
+    isometry and phase.
+  \item[\textbf{C4}] A generalisation beyond the homogeneous case: the construction
+    needs only that ancestors nest, so it applies to arbitrary rooted trees, with
+    $\Zpn$ as the specialisation in which the profile ties to $\abs{\cdot}_p$.
+  \item[\textbf{C5}] An empirical study on WordNet, Gene Ontology and the NCBI taxonomy
+    separating ultrametricity from usable resolution, mapping the
+    expressivity/hierarchy trade-off of a re-uploading extension, and quantifying the
+    shot budget the construction needs.
+\end{itemize}
+
+\paragraph{Reproducibility.}
+Every theorem in this paper has a corresponding numerical check, cited by test name at
+the point of use, and every experimental number in the text is generated from the
+experiment outputs rather than transcribed. \todo{Add the public repository URL once
+the remote exists; the availability statement must resolve before submission.}
