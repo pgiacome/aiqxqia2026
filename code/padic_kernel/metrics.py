@@ -13,8 +13,10 @@ __all__ = [
     "dimension_lower_bound",
     "gromov_delta",
     "kernel_target_alignment",
+    "level_constancy",
     "profile_residual",
     "qubit_lower_bound",
+    "resolution_depth",
     "strong_triangle_violations",
     "violation_rate",
 ]
@@ -93,3 +95,31 @@ def qubit_lower_bound(kernel: np.ndarray) -> float:
 def profile_residual(kernel: np.ndarray, lca: np.ndarray, profile: _Callable) -> float:
     """``max |K(x, y) - f(lambda(x, y))|``."""
     return float(np.max(np.abs(kernel - profile(lca))))
+
+
+def level_constancy(kernel: np.ndarray, lca: np.ndarray) -> float:
+    """The largest spread of ``K`` within a single LCA level.
+
+    Zero exactly when ``K(x, y) = f(lambda(x, y))`` for some profile ``f``, i.e. when
+    the kernel is ultrametric *with a profile*. This is the property Theorem A rules
+    out for product maps, and it is strictly stronger than having no strong-triangle
+    violations: the delta kernel of a basis encoding has zero violations but resolves
+    nothing, so violations alone cannot separate the encodings.
+    """
+    spreads = [float(np.ptp(kernel[lca == v])) for v in np.unique(lca)]
+    return max(spreads) if spreads else 0.0
+
+
+def resolution_depth(kernel: np.ndarray, lca: np.ndarray, tol: float = 1e-6) -> int:
+    """How many distinct kernel values the encoding assigns across LCA levels.
+
+    Theorem A says an ultrametric product map resolves the tree only to depth
+    ``v* + 1``, giving at most three distinct values. The exact construction gives
+    ``height + 1``. A basis encoding gives 2.
+    """
+    means = np.array([float(kernel[lca == v].mean()) for v in np.unique(lca)])
+    keep = [means[0]]
+    for value in means[1:]:
+        if abs(value - keep[-1]) > tol:
+            keep.append(value)
+    return len(keep)

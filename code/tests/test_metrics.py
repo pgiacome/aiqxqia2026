@@ -74,3 +74,51 @@ def test_alignment_is_one_for_a_perfectly_matched_kernel():
 def test_violation_scan_refuses_oversized_inputs():
     with pytest.raises(ValueError, match="512"):
         strong_triangle_violations(np.zeros((600, 600)))
+
+
+def _kernel_for(name, p=2, n=4, **kwargs):
+    from padic_kernel.encoding import EncodingFactory
+    from padic_kernel.kernels import fidelity_gram
+
+    tree = build_padic_tree(p, n)
+    lca = lca_depth_matrix(ancestor_matrix(tree, tree.leaves))
+    return fidelity_gram(EncodingFactory(name, **kwargs).states(tree, tree.leaves)), lca
+
+
+def test_level_constancy_is_zero_for_the_exact_construction():
+    from padic_kernel.metrics import level_constancy
+
+    k, lca = _kernel_for("path_state", profile=geometric_profile(4, 2, 1.0))
+    assert level_constancy(k, lca) < 1e-12
+
+
+def test_level_constancy_is_zero_for_basis_encoding_too():
+    """The delta kernel is ultrametric -- degenerately so.
+
+    This is why the paper reports resolution depth alongside violations: a basis
+    encoding passes every ultrametricity check while collapsing the hierarchy.
+    """
+    from padic_kernel.metrics import level_constancy, resolution_depth
+
+    k, lca = _kernel_for("basis", radix=2)
+    assert level_constancy(k, lca) < 1e-12
+    assert resolution_depth(k, lca) == 2
+
+
+def test_level_constancy_is_positive_for_product_and_zz_maps():
+    from padic_kernel.metrics import level_constancy
+
+    for name, kwargs in (
+        ("angle", {"radix": 2}),
+        ("zz", {"radix": 2}),
+        ("random_product", {"radix": 2, "local_dim": 3, "seed": 0}),
+    ):
+        k, lca = _kernel_for(name, **kwargs)
+        assert level_constancy(k, lca) > 1e-6, name
+
+
+def test_resolution_depth_is_full_for_the_exact_construction():
+    from padic_kernel.metrics import resolution_depth
+
+    k, lca = _kernel_for("path_state", n=4, profile=geometric_profile(4, 2, 1.0))
+    assert resolution_depth(k, lca) == 5
