@@ -3462,3 +3462,62 @@ shortfall.
 source nodes / height 19 → 1,028 nodes, radix 11, 11 classes, 11 qubits; GO
 molecular-function 10,041 / 12 → 1,235 nodes, radix 16, 26 classes, 11 qubits; NCBI
 Mammalia 14,722 / 14 → 633 nodes, radix 38, 4 classes, 10 qubits.
+
+**6 August 2026 — Tasks 10–13 complete.** 130 tests pass; `ruff` and `mypy` clean. All
+five experiments run end to end and emit figures.
+
+**A new result, found while building E5: Proposition D.** Global depolarising noise
+sends `K -> (1 - r)K + r/D`, hence `d -> (1 - r)d + r(1 - 1/D)` — an increasing affine
+map. Affine maps preserve order and commute with `max`, so the strong triangle
+inequality survives **exactly**, at every rate. Verified numerically to `r = 0.99`. What
+depolarising destroys is contrast, not geometry: the profile flattens and resolution
+depth falls (6 → 4 at `r = 0.99`). This belongs in §7 of the paper as a proposition
+with a two-line proof, and it materially improves the noise story: the construction's
+ultrametricity is immune to the dominant hardware error channel.
+
+**Three measurement corrections, each caught because a result looked wrong.**
+
+1. **E5 must report violation magnitude, not count.** In an ultrametric every triangle
+   is isoceles with its two longest sides equal, so a large fraction of triples — 66.7%
+   on the `p=2, n=5` tree — meets the inequality with equality. Any perturbation flips
+   about half of them, so the count *rises* toward ~0.30 as shots increase, which is
+   the opposite of the expected behaviour and pure artifact. The magnitude behaves
+   properly, decaying as `O(1/sqrt(shots))`: `0.134, 0.049, 0.014, 0.0049, 0.0017` for
+   `1e2 … 1e6` shots, a factor of `sqrt(10)` per decade. **Shot budget: 1e5 shots per
+   kernel entry** for worst-case excess below 0.01.
+2. **E3's crossing figure must use the closed-form full-tree bound.** Evaluating
+   Theorem B on a 128-leaf subsample stays a valid bound but is capped at
+   `log2(128) = 7` qubits, so the curve saturated instead of crossing. Added
+   `metrics.regular_tree_dimension_bound`, which computes `p**n / S` without
+   materialising the tree. The crossing is now unambiguous: at `p = 2` the bound is
+   below `n` at every depth (1.54, 2.48, 3.45, 4.43, 5.42 for `n = 2..6`); at `p = 3` it
+   is above at every depth (2.80, 4.35, 5.93, 7.51, 9.10); at `p = 5` far above.
+3. **E2 reports undefined Spearman rho as `None` with a note.** A delta kernel gives
+   every distinct pair the same distance, so no rank correlation exists; NaN would read
+   as a failed computation.
+
+Also pinned: **Theorem B genuinely needs `s > 1`.** At `s = 1` every term of the row sum
+is 1, so `S = 1 + n(p-1)/p` grows with `n` and the bound degrades to `p**n / Theta(n)`.
+The hypothesis is load-bearing, not decoration.
+
+**E2 results, to be reported exactly as they came out.** On WordNet the path state
+leads on geometric fidelity by a wide margin and *loses* on leaf accuracy:
+
+| encoding | leaf acc. | root acc. | Spearman rho |
+|---|---|---|---|
+| path state | 0.792 | 0.937 | **1.000** |
+| random product | **0.839** | 1.000 | 0.368 |
+| angle | 0.675 | 1.000 | 0.175 |
+| ZZ | 0.478 | 0.824 | 0.098 |
+| basis | 0.212 | 0.667 | undefined |
+
+GO is the same shape (path state 0.601 vs random product 0.750). This is exactly the
+case §8 of the spec pre-committed to reporting plainly: accuracy and geometric fidelity
+are different objectives, and the paper's claim is the latter. The path state's
+`rho = 1.000` is by construction, not a fitted result, and must be described that way.
+
+**E4.** Distortion grows continuously from zero, so the exact construction is the
+endpoint of a tunable family rather than an isolated point. The alignment available is
+small: on WordNet the best configuration reaches 0.4258 against the exact point's
+0.4212, a gain of 0.005 for distortion 0.046. §7 should say plainly that the trade-off
+exists but buys little on these datasets.
