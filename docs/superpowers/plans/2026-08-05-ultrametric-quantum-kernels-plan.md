@@ -3521,3 +3521,55 @@ endpoint of a tunable family rather than an isolated point. The alignment availa
 small: on WordNet the best configuration reaches 0.4258 against the exact point's
 0.4212, a gain of 0.005 for distortion 0.046. §7 should say plainly that the trade-off
 exists but buys little on these datasets.
+
+**6 August 2026 — Tasks 14–16 complete.** 130 tests pass; `ruff` and `mypy` clean. The
+manuscript compiles to 3 pages of scaffold with all 16 references typeset and zero
+BibTeX errors.
+
+**Task 14.** `collect_numbers.py` emits 48 macros from the newest run of each
+experiment. Every one uses `\providecommand` + `\renewcommand`, so the file is
+idempotent and a dropped macro degrades to empty rather than breaking the build.
+
+**Task 15 — toolchain findings worth keeping.** `ceurart` needs `ccicons` and
+`elsarticle-num-names`, neither in TeX Live 2023 here, and `tlmgr` refuses to install
+(local 2023 older than the remote 2026 repository). Both were fetched from CTAN into
+`$HOME/texmf`; the Makefile exports `TEXMFHOME` so the build does not depend on the
+ambient environment. `fontawesome5` is also missing, but the class guards it with a
+file-exists test, so it degrades to no ORCID icon. Two further build facts:
+
+- **`lmodern` is required.** Without `cm-super`, T1 Computer Modern falls back to
+  bitmaps and microtype's font expansion aborts the run outright.
+- **Do not set `\bibliographystyle` in `main.tex`.** The class already sets
+  `elsarticle-num-names`; a duplicate makes BibTeX abort with *"Illegal, another
+  \bibstyle command"* — reported only in the `.blg`, while a stale `.bbl` survives and
+  the build looks fine. This cost a debugging cycle and would have shipped a paper with
+  no bibliography.
+
+Layout choices: one column (the `ceurart` default and CEUR house style) and **no**
+`singleblind` option, since that anonymises and the workshop wants names visible.
+
+**Task 16 — 16 references, all machine-verified.** `verify_refs.py` resolves every
+arXiv id and DOI *and* compares the recorded title against the real record, because an
+identifier that resolves to a different paper looks fine while being wrong. Non-zero
+exit on failure, so it gates submission.
+
+The gate paid for itself on first run. Of three failures, one was real: I had written
+the title for arXiv:2401.04642 from memory rather than from the record. It is *Neural
+quantum kernels: training quantum kernels with quantum neural networks*. The other two
+were a bug in the comparison — LaTeX accent escapes against Unicode — now normalised
+through NFKD.
+
+**Correction to the design spec §11.** The Aniello et al. p-adic qubit paper is in
+**Entropy** 25(1):86, DOI 10.3390/e25010086 — not *Symmetry*.
+
+**v-PuNNs, confirmed and consequential for §8.** arXiv:2508.01010, sole author Gnankan
+Landry Regis N'guessan, still a preprint (revised January 2026). It reports **99.96%
+leaf accuracy on WordNet**, 96.9%/100% on GO, and Spearman |rho| = 0.96 on NCBI. Our
+path state gets 0.792 leaf accuracy on WordNet. The gap is large and must be stated
+plainly, alongside the point that v-PuNNs is a trained deep model with a bespoke
+optimiser while ours is a fixed encoding with a closed form and rho = 1.000 by
+construction. This is exactly the scenario §8 of the spec pre-committed to.
+
+Items the literature search could not verify were **dropped, not cited**: a Murtagh
+2009 ultrametric-clustering paper (bibliographic detail unconfirmed) and a KDD '25
+acceptance claim for arXiv:2507.17787, which is cited as a preprint instead.
