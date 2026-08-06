@@ -94,7 +94,9 @@ must not be uploaded while the string TODO-AUTHOR appears anywhere in the source
 \section*{Declaration on Generative AI}
 \todo{Complete per the CEUR-WS generative-AI disclosure policy in force at submission.}
 
-\bibliographystyle{elsarticle-num-names}
+%% No \bibliographystyle here: ceurart.cls already sets elsarticle-num-names, and a
+%% second \bibstyle in the .aux makes BibTeX abort with "Illegal, another \bibstyle
+%% command" -- which it reports only in the .blg, while still leaving a stale .bbl.
 \bibliography{refs}
 
 \end{document}

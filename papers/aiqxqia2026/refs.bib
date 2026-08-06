@@ -1,2 +1,188 @@
-% Bibliography for the AIQxQIA 2026 submission.
-% Every entry is verified against a real record before it is cited.
+%% Bibliography for the AIQxQIA 2026 submission.
+%%
+%% Every entry carries an arXiv id or a DOI and is checked mechanically by
+%%   uv run python -m experiments.verify_refs
+%% which resolves each identifier AND compares the recorded title against the real
+%% record, so an identifier pointing at a *different* paper fails too.
+%%
+%% Cite keys follow .claude/skills/bibtex-hygiene: LastnameYYYYKeyword, with EtAl for
+%% three or more authors.
+
+%% ------------------------------------------------------------- p-adic machine learning
+
+@misc{Nguessan2025VPuNNs,
+  author        = {N'guessan, Gnankan Landry Regis},
+  title         = {v-{P}u{NN}s: van der {P}ut Neural Networks for Transparent Ultrametric Representation Learning},
+  year          = {2025},
+  eprint        = {2508.01010},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  note          = {Preprint; revised January 2026},
+}
+
+@article{Bradley2025LocalUltrametricity,
+  author        = {Bradley, Patrick Erik},
+  title         = {On the Local Ultrametricity of Finite Metric Data},
+  journal       = {Journal of Classification},
+  volume        = {42},
+  number        = {3},
+  pages         = {624--638},
+  year          = {2025},
+  doi           = {10.1007/s00357-025-09508-3},
+  eprint        = {2408.07174},
+  archivePrefix = {arXiv},
+}
+
+%% -------------------------------------------------------------- p-adic quantum systems
+
+@article{AnielloEtAl2023PadicQubit,
+  author  = {Aniello, Paolo and Mancini, Stefano and Parisi, Vincenzo},
+  title   = {A p-Adic Model of Quantum States and the p-Adic Qubit},
+  journal = {Entropy},
+  volume  = {25},
+  number  = {1},
+  pages   = {86},
+  year    = {2023},
+  doi     = {10.3390/e25010086},
+}
+
+@misc{ZunigaGalindoChaconCortes2025QuantumMarkov,
+  author        = {Z{\'u}{\~n}iga-Galindo, W. A. and Chac{\'o}n-Cort{\'e}s, L. F.},
+  title         = {Continuous-Time Quantum Markov Chains and Discretizations of p-Adic {S}chr{\"o}dinger Equations: Comparisons and Simulations},
+  year          = {2025},
+  eprint        = {2508.06712},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
+
+@misc{ZunigaGalindo2024QuantumWalks,
+  author        = {Z{\'u}{\~n}iga-Galindo, W. A.},
+  title         = {p-Adic Quantum Mechanics, Infinite Potential Wells, and Continuous-Time Quantum Walks},
+  year          = {2024},
+  eprint        = {2410.13048},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
+
+@article{ZunigaGalindo2025TwoAdic,
+  author        = {Z{\'u}{\~n}iga-Galindo, W. A.},
+  title         = {2-Adic Quantum Mechanics, Continuous-Time Quantum Walks, and the Space Discreteness},
+  journal       = {Fortschritte der Physik},
+  year          = {2025},
+  doi           = {10.1002/prop.70019},
+  eprint        = {2502.16416},
+  archivePrefix = {arXiv},
+}
+
+%% --------------------------------------------------------------- quantum kernel methods
+
+@article{HavlicekEtAl2019QuantumEnhanced,
+  author        = {Havl{\'i}{\v{c}}ek, Vojt{\v{e}}ch and C{\'o}rcoles, Antonio D. and
+                   Temme, Kristan and Harrow, Aram W. and Kandala, Abhinav and
+                   Chow, Jerry M. and Gambetta, Jay M.},
+  title         = {Supervised learning with quantum-enhanced feature spaces},
+  journal       = {Nature},
+  volume        = {567},
+  number        = {7747},
+  pages         = {209--212},
+  year          = {2019},
+  doi           = {10.1038/s41586-019-0980-2},
+  eprint        = {1804.11326},
+  archivePrefix = {arXiv},
+}
+
+@misc{Schuld2021KernelMethods,
+  author        = {Schuld, Maria},
+  title         = {Supervised quantum machine learning models are kernel methods},
+  year          = {2021},
+  eprint        = {2101.11020},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
+
+@article{ThanasilpEtAl2024ExponentialConcentration,
+  author        = {Thanasilp, Supanut and Wang, Samson and Cerezo, M. and Holmes, Zo{\"e}},
+  title         = {Exponential concentration in quantum kernel methods},
+  journal       = {Nature Communications},
+  volume        = {15},
+  pages         = {5200},
+  year          = {2024},
+  doi           = {10.1038/s41467-024-49287-w},
+  eprint        = {2208.11060},
+  archivePrefix = {arXiv},
+}
+
+@misc{RodriguezGrasaEtAl2024NeuralQuantumKernels,
+  author        = {Rodriguez-Grasa, Pablo and Ban, Yue and Sanz, Mikel},
+  title         = {Neural quantum kernels: training quantum kernels with quantum neural networks},
+  year          = {2024},
+  eprint        = {2401.04642},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
+
+@misc{TomasiEtAl2025BenignOverfitting,
+  author        = {Tomasi, Joachim and Anthoine, Sandrine and Kadri, Hachem},
+  title         = {Benign Overfitting with Quantum Kernels},
+  year          = {2025},
+  eprint        = {2503.17020},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
+
+@misc{KempkesEtAl2025DoubleDescent,
+  author        = {Kempkes, Matthias and Ijaz, Aroosa and Gil-Fuster, Elies and
+                   Bravo-Prieto, Carlos and Spiegelberg, Jakob and
+                   van Nieuwenburg, Evert and Dunjko, Vedran},
+  title         = {Double descent in quantum kernel methods},
+  year          = {2025},
+  eprint        = {2501.10077},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
+
+%% --------------------------------------------- hierarchy in classical representation learning
+
+@misc{NickelKiela2017Poincare,
+  author        = {Nickel, Maximilian and Kiela, Douwe},
+  title         = {Poincar{\'e} Embeddings for Learning Hierarchical Representations},
+  year          = {2017},
+  eprint        = {1705.08039},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  note          = {Advances in Neural Information Processing Systems 30},
+}
+
+@misc{HeEtAl2025HyperbolicSurvey,
+  author        = {He, Neil and Madhu, Hiren and Bui, Ngoc and Yang, Menglin and Ying, Rex},
+  title         = {Hyperbolic Deep Learning for Foundation Models: A Survey},
+  year          = {2025},
+  eprint        = {2507.17787},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+}
+
+%% ------------------------------------------------------------------- data re-uploading
+
+@article{PerezSalinasEtAl2020DataReuploading,
+  author        = {P{\'e}rez-Salinas, Adri{\'a}n and Cervera-Lierta, Alba and
+                   Gil-Fuster, Elies and Latorre, Jos{\'e} I.},
+  title         = {Data re-uploading for a universal quantum classifier},
+  journal       = {Quantum},
+  volume        = {4},
+  pages         = {226},
+  year          = {2020},
+  doi           = {10.22331/q-2020-02-06-226},
+  eprint        = {1907.02085},
+  archivePrefix = {arXiv},
+}
+
+@misc{CasseEtAl2024QuantumReuploading,
+  author        = {Cass{\'e}, Louis and Pfahringer, Bernhard and Bifet, Albert and
+                   Magniette, Fr{\'e}d{\'e}ric},
+  title         = {Quantum Re-Uploading for Calorimetry: Optimized Architectures with Extended Expressivity},
+  year          = {2024},
+  eprint        = {2412.12397},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+}
