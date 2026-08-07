@@ -33,9 +33,9 @@ identifier. Multiple inheritance is therefore discarded, which we record as a
 limitation in \Cref{sec:limitations} rather than as a detail.
 
 We then truncate every hierarchy at depth $8$. This is needed because the
-$2^{\text{height}}$-dimensional product baselines are otherwise not representable ---
+$2^{\text{height}}$-dimensional product baselines are otherwise not representable:
 WordNet reaches depth $\EOneSourceHeight$, so an angle or ZZ encoding would require
-$2^{\EOneSourceHeight}$ amplitudes per point --- and it has the further benefit that
+$2^{\EOneSourceHeight}$ amplitudes per point. Truncation also has the further benefit that
 every encoding is compared on exactly the same tree. Finally we sample $256$ leaves,
 restrict to their ancestor closure, and pad shallow leaves to uniform depth. None of
 these steps changes the lowest-common-ancestor depths among the sampled leaves below
@@ -46,7 +46,7 @@ Angle encoding, computational-basis encoding, a ZZ/IQP feature map with two
 repetitions, a random product map, a block-product map where representable, and two
 classical references: an RBF kernel on integer leaf coordinates and one on a one-hot
 encoding. The geometric profile uses base $2$ throughout for the real datasets. Tying
-the profile base to the branching factor instead --- $38$ for NCBI --- pushes
+the profile base to the branching factor instead, $38$ for NCBI, pushes
 $f(0)$ to around $10^{-13}$, below any resolution tolerance that a realistic shot
 budget could support, so the base is treated as the free design parameter it is.
 
@@ -81,8 +81,8 @@ Three readings. First, the path-state encoding attains level constancy
 $\PathLevelConstancy$ and zero violations on every dataset, with full resolution: the
 construction is exact on real hierarchies, not only on the regular trees of
 \Cref{thm:path-states}. Second, every product and entangling baseline has a level
-constancy near $1$ --- angle reaches $\AngleLevelConstancy$ and the random product map
-$\RandProdLevelConstancy$ --- so their kernels are not merely imperfect ultrametrics
+constancy near $1$: angle reaches $\AngleLevelConstancy$ and the random product map
+$\RandProdLevelConstancy$. Their kernels are not merely imperfect ultrametrics
 but are not ultrametric at all, in agreement with \Cref{thm:product-nogo,thm:dimension-bound}.
 
 Third, and worth stating plainly because it complicates the headline: \textbf{basis
@@ -180,7 +180,7 @@ answers the structural question: the exact construction is not an isolated speci
 case but the zero-distortion endpoint of a continuum. The quantitative answer is less
 encouraging. The exact point achieves alignment $\EFourExactAlignment$, and the best
 configuration anywhere in the family achieves $\EFourBestAlignment$ at distortion
-$\EFourBestDistortion$ --- a gain of $\EFourAlignmentGain$. On these datasets the
+$\EFourBestDistortion$, a gain of $\EFourAlignmentGain$. On these datasets the
 trade-off exists but buys very little, and we would not recommend paying for it.
 
 \subsection{E5: noise and finite shots}

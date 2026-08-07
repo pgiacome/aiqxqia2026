@@ -8,7 +8,7 @@ Quantum systems over $p$-adic fields have a developed formalism.
 extension of $\mathbb{Q}_p$, working the $p$-adic qubit and quNit out explicitly.
 \citet{ZunigaGalindo2024QuantumWalks} and \citet{ZunigaGalindo2025TwoAdic} study
 continuous-time quantum walks whose vertex set consists of the sub-balls of a $p$-adic
-ball --- that is, on the nodes of the $p$-adic tree --- and
+ball, that is, on the nodes of the $p$-adic tree, and
 \citet{ZunigaGalindoChaconCortes2025QuantumMarkov} relate discretised $p$-adic
 Schrödinger dynamics to continuous-time quantum Markov chains. Our path states live in
 $\C^{V}$ with $V$ the node set of that same tree, so the encoding of
@@ -24,8 +24,8 @@ theorem, and reports strong results on WordNet, Gene Ontology and the NCBI taxon
 Our benchmarks are taken from that work so the comparison is direct. The relationship
 is complementary rather than competitive: v-PuNNs is a trained architecture over
 $p$-adic weight space, while this paper characterises which \emph{quantum encodings}
-can carry ultrametric structure at all, and its accuracy is correspondingly higher
-(\Cref{subsec:e2}). Separately, \citet{Bradley2025LocalUltrametricity} asks how
+can carry ultrametric structure at all. v-PuNNs is accordingly far more accurate on
+the shared benchmarks, as we report in \Cref{subsec:e2}. Separately, \citet{Bradley2025LocalUltrametricity} asks how
 ultrametric real finite metric data actually is, recasting Vietoris--Rips complexes via
 $p$-adic Mumford curves; that question is prior to ours, which assumes the target
 geometry is ultrametric and asks what can represent it.
@@ -52,7 +52,7 @@ Hyperbolic embeddings are the established answer to representing trees
 literature \citep{HeEtAl2025HyperbolicSurvey}. Hyperbolic space achieves low but
 non-zero distortion of tree metrics, because a tree embeds into it only approximately.
 The path-state construction achieves zero distortion by design, at the cost of a
-dimension linear rather than logarithmic in the number of nodes --- and, by
+dimension linear rather than logarithmic in the number of nodes. By
 \Cref{thm:dimension-bound}, that cost is not an artefact of our construction but a
 lower bound for any exact realisation.
 

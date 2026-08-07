@@ -18,13 +18,17 @@ leaves meet. On the regular $p$-ary tree, $\lcadepth = v$ of \cref{eq:valuation}
 \end{definition}
 
 Being ultrametric with \emph{some} profile is the same as being constant on each level
-of the lowest-common-ancestor relation, a property we call \emph{level constancy}. It
-is what makes the induced distance an ultrametric.
+of the lowest-common-ancestor relation, a property we call \emph{level constancy}.
+Level constancy alone is not enough to make the induced distance an ultrametric:
+$f = (0.9, 0.1, 1)$ on a depth-$2$ tree is level-constant, yet two leaves meeting at
+depth $1$ are further apart than either is from a leaf meeting them at the root.
+Monotonicity is what supplies the strong triangle inequality.
 
 \begin{lemma}
   \label{lem:distance-is-ultrametric}
-  If $K$ is ultrametric with a non-decreasing profile $f$, then $d = 1 - K$ is an
-  ultrametric on the leaves of $T$.
+  If $K$ is ultrametric with a non-decreasing profile $f$ satisfying $f(v) < 1$ for
+  every $v < n$, then $d = 1 - K$ is an ultrametric on the leaves of $T$. Without the
+  second hypothesis $d$ is a pseudo-ultrametric: $f \equiv 1$ gives $d \equiv 0$.
 \end{lemma}
 
 \begin{proof}
@@ -52,13 +56,23 @@ We therefore report two quantities throughout.
 
 \begin{definition}[Level constancy and resolution depth]
   \label{def:diagnostics}
-  For a kernel $K$ on leaves with lowest-common-ancestor matrix $\lcadepth$, the
-  \emph{level constancy} is
-  $\max_{v} \bigl( \max_{\lcadepth(x,y)=v} K(x,y) - \min_{\lcadepth(x,y)=v} K(x,y)
-  \bigr)$, which vanishes exactly when $K$ is ultrametric with some profile. The
-  \emph{resolution depth} is the number of distinct values taken by the level means of
-  $K$, up to a tolerance; it is $n+1$ for a strictly monotone profile and $2$ for the
-  discrete metric.
+  Let $V(K) = \{\, v : \lcadepth(x,y) = v \text{ for some pair of leaves} \,\}$ be
+  the set of \emph{populated} levels. The \emph{level constancy} is
+  \begin{equation*}
+    \max_{v \in V(K)} \Bigl( \max_{\lcadepth(x,y)=v} K(x,y)
+      - \min_{\lcadepth(x,y)=v} K(x,y) \Bigr),
+  \end{equation*}
+  which vanishes exactly when $K$ is ultrametric with some profile. Writing
+  $\mu_v$ for the mean of $K$ over level $v$, the \emph{resolution depth} is the
+  number of runs in the sequence $(\mu_v)_{v \in V(K)}$ after merging consecutive
+  entries differing by at most $\tau$; we take $\tau = 10^{-6}$ throughout, a scale no
+  realistic shot budget could resolve (\Cref{subsec:e5}). It equals $\abs{V(K)}$ for a
+  strictly monotone profile and $2$ for the discrete metric.
+
+  Restricting to populated levels matters on padded and irregular trees, where some $v$
+  may carry no pair of leaves at all. At such a $v$ the profile is not determined by
+  $K$, so \Cref{thm:path-states} should be read as a bijection onto profiles restricted
+  to $V(K)$.
 \end{definition}
 
 An encoding is useful for hierarchical data only if it scores well on both: level

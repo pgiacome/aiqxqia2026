@@ -38,32 +38,34 @@ We answer with two obstructions and a matching construction.
 
 \paragraph{Theorem A: product encodings cannot do it.}
 A feature map that factorises across digits induces a multiplicative kernel, and
-multiplicativity is incompatible with ultrametricity beyond the first level of the
-tree. Any such map resolves the hierarchy only to a bounded depth, whatever the local
-dimension. The argument generalises from single digits to disjoint blocks of digits, so
-it constrains a class of encodings rather than a list of them. Angle encoding and
-computational-basis encoding are corollaries.
+multiplicativity bounds how deep such a map can resolve the tree, whatever the local
+dimension: a product map is left with three kernel values, too few for a strictly
+monotone profile once $n \ge 2$. The argument generalises from single digits to disjoint
+blocks, where the resolution bound is set by the size of one block, so it constrains a
+class of encodings rather than a list of them. Angle encoding and computational-basis
+encoding are corollaries.
 
 \paragraph{Theorem B: narrow encodings cannot do it either, whatever their structure.}
 The Gram matrix of any exact realisation is positive semi-definite with unit diagonal,
 which forces its rank above $L^{2} / \sum_{x,y} K(x,y)$ on $L$ points. On the regular
-$p$-ary tree with a geometrically decaying profile this exceeds $2^{n}$ for every
-$p \ge 3$: \emph{no} $n$-qubit encoding realises a strictly monotone ultrametric kernel
-on $\Zpn$, entangling or not. This is what rules out IQP and ZZ feature maps, which
-Theorem~A does not reach.
+$p$-ary tree with a geometrically decaying profile of parameter $s > 1$, this exceeds
+$2^{n}$ for every $p \ge 3$ once $n$ passes an explicit threshold: beyond it, \emph{no}
+$n$-qubit encoding realises that kernel on $\Zpn$, entangling or not. This is what rules
+out IQP and ZZ feature maps, which Theorem~A does not reach.
 
 \paragraph{Theorem C: path states do it exactly, at essentially the optimal width.}
 Writing $\anc_i(x)$ for the depth-$i$ ancestor of a leaf $x$, the state
 $\Phi_f(x) = \sum_i a_i \ket{\anc_i(x)}$ realises \emph{every} strictly monotone
 ultrametric kernel exactly, with amplitudes determined by the target profile. The
 construction needs $\lceil \log_2 \abs{V} \rceil$ qubits for a tree on $\abs{V}$ nodes,
-$n+1$ non-zero amplitudes, and $O(n)$ controlled rotations, and it matches Theorem~B to
+$n+1$ non-zero amplitudes, and $O(n \log \abs{V})$ gates, and it matches Theorem~B to
 within an additive constant.
 
 Along the way we record a fourth fact with a two-line proof. Global depolarising noise
-acts on the induced distance as an increasing affine map, so it \emph{cannot} break
-ultrametricity at any error rate (\Cref{prop:depolarising}). What it destroys is
-contrast rather than geometry. Finite sampling, by contrast, breaks ultrametricity
+acts on the induced distance as a non-decreasing affine map, so it \emph{cannot} break
+the strong triangle inequality or level constancy at any error rate
+(\Cref{prop:depolarising}). What it destroys is contrast rather than geometry. Finite
+sampling behaves in the opposite way and breaks the strong triangle inequality
 immediately, for a reason specific to ultrametric spaces that we make precise in
 \Cref{sec:experiments}.
 
@@ -83,15 +85,17 @@ closed form survives the subsequent layers.
 
 \begin{itemize}
   \item[\textbf{C1}] A no-go theorem for product feature maps
-    (\Cref{thm:product-nogo}), generalised to block-product maps with blocks of
-    bounded size, with corollaries for angle and computational-basis encodings.
+    (\Cref{thm:product-nogo}), which bounds the resolution depth of any block-product
+    map by the size of one block and collapses to three kernel values for genuine
+    product maps, with corollaries for angle and computational-basis encodings.
   \item[\textbf{C2}] A dimension lower bound for \emph{arbitrary} feature maps
-    (\Cref{thm:dimension-bound}), which rules out every $n$-qubit encoding on $\Zpn$
-    for $p \ge 3$ and covers the entangling maps Theorem~A cannot reach.
+    (\Cref{thm:dimension-bound}), which rules out every $n$-qubit encoding of the
+    geometric profile on $\Zpn$ for $p \ge 3$ and $n$ past an explicit threshold, and
+    so covers the entangling maps Theorem~A cannot reach.
   \item[\textbf{C3}] An exact construction (\Cref{thm:path-states}) realising precisely
     the strictly monotone ultrametric kernels, with a resource count matching C2 to
-    within an additive constant, and a converse characterising all realisations up to
-    isometry and phase.
+    within an additive constant, and a converse characterising every realisation with
+    non-negative overlaps up to isometry and phase.
   \item[\textbf{C4}] A generalisation beyond the homogeneous case: the construction
     needs only that ancestors nest, so it applies to arbitrary rooted trees, with
     $\Zpn$ as the specialisation in which the profile ties to $\abs{\cdot}_p$.

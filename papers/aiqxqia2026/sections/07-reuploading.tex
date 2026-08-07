@@ -24,7 +24,10 @@ path of $x$ --- the natural data-dependent diagonal on the path-state Hilbert sp
 and each $W_\ell$ interpolates between the identity and a Haar-random unitary by a
 parameter we call the entangling strength. At $\gamma = 0$ with trivial mixers,
 \cref{eq:reupload} reduces exactly to $\pathstate{x}$, so the exact construction sits
-at the origin of the family and anchors any trade-off curve at zero distortion.
+at the origin of the family and anchors any trade-off curve at zero distortion. Note
+that the innermost $D_{\gamma}(x)$ phases exactly the support of $\pathstate{x}$ and so
+acts as a global phase; the family is non-trivial only because the mixers rotate the
+state between successive re-uploadings.
 
 We measure two quantities: the \emph{ultrametric distortion}
 \begin{equation}
@@ -36,33 +39,48 @@ which vanishes exactly when the induced distance is an ultrametric, and the
 kernel-target alignment as a standard proxy for usable expressivity.
 \Cref{sec:experiments} maps the resulting Pareto front.
 
-\subsection{Depolarising noise cannot break ultrametricity}
+\subsection{Depolarising noise preserves the strong triangle inequality}
 
 Exactness is a statement about an ideal kernel, so it is fair to ask what survives on
-hardware. For the dominant global error channel the answer is: all of it.
+hardware. For the dominant global error channel, the geometry survives intact and only
+the contrast degrades.
 
-\begin{proposition}[Depolarising noise preserves ultrametricity]
+\begin{proposition}[Depolarising noise preserves the strong triangle inequality]
   \label{prop:depolarising}
-  Let $K$ be ultrametric with non-decreasing profile $f$ on states of dimension $D$,
-  and let $K_r = (1-r) K + r/D$ be the kernel estimated under global depolarising noise
-  of rate $r \in [0,1]$. Then $d_r = 1 - K_r$ satisfies \cref{eq:strong-triangle} for
-  every $r$, and $K_r$ is ultrametric with profile $(1-r) f + r/D$.
+  Let $K$ be ultrametric with non-decreasing profile $f$, realised on a Hilbert space of
+  dimension $D_{\mathcal{H}} = 2^{\lceil \log_2 \abs{V} \rceil}$, and let
+  $K_r = (1-r) K + r / D_{\mathcal{H}}$ be the kernel estimated under global
+  depolarising noise of rate $r \in [0,1]$. Then $K_r$ is level-constant with
+  non-decreasing profile $(1-r) f + r / D_{\mathcal{H}}$, and $d_r = 1 - K_r$ satisfies
+  \cref{eq:strong-triangle} for every $r$.
 \end{proposition}
 
 \begin{proof}
   The compute-uncompute estimator reads off the probability of the all-zeros outcome;
   replacing the state by the maximally mixed state with probability $r$ sends that
-  probability to $1/D$, which gives the stated $K_r$. Hence
+  probability to $1 / D_{\mathcal{H}}$, which gives the stated $K_r$. Hence
   \begin{equation*}
-    d_r = 1 - (1-r)K - \frac{r}{D} = (1-r)\,d + r\Bigl(1 - \frac{1}{D}\Bigr),
+    d_r = 1 - (1-r)K - \frac{r}{D_{\mathcal{H}}}
+    = (1-r)\,d + r\Bigl(1 - \frac{1}{D_{\mathcal{H}}}\Bigr),
   \end{equation*}
-  an affine function $\varphi(t) = (1-r)t + c$ of $d$ with non-negative slope. An
-  increasing affine map preserves order and commutes with $\max$, so
+  an affine function $\varphi(t) = (1-r)t + c$ of $d$ with non-negative slope. A
+  non-decreasing affine map preserves order and commutes with $\max$, so
   $d(x,z) \le \max(d(x,y), d(y,z))$ implies
   $\varphi(d(x,z)) \le \max(\varphi(d(x,y)), \varphi(d(y,z)))$, which is
   \cref{eq:strong-triangle} for $d_r$. Applying $\varphi$ to $K = f(\lcadepth)$ gives
   the stated profile, which is still non-decreasing.
 \end{proof}
+
+\begin{remark}[Why this is not quite ``$K_r$ is ultrametric'']
+  \label{rem:depolarising-caveat}
+  For $r > 0$ the profile of $K_r$ has value $(1-r) + r/D_{\mathcal{H}} < 1$ at
+  $v = n$, so it violates the normalisation $f(n) = 1$ of
+  \Cref{def:ultrametric-kernel}, and correspondingly $d_r(x,x) > 0$: strictly, $d_r$ is
+  a semi-metric rather than a metric. What the proposition establishes is that the two
+  properties we actually measure --- level constancy and the strong triangle inequality
+  --- both survive. Rescaling $K_r$ by its diagonal restores $f(n) = 1$ and changes
+  nothing else, since the rescaling is by a constant.
+\end{remark}
 
 What depolarising noise destroys is not geometry but contrast. The profile is
 compressed towards the constant $1/D$, so consecutive levels become harder to tell

@@ -385,3 +385,54 @@ def test_proposition_d_exact_ultrametrics_are_isoceles_so_ties_dominate():
     d_xz = dist[:, None, :]
     ties = np.isclose(d_xz, np.maximum(d_xy, d_yz), atol=1e-12)
     assert ties.mean() > 0.25, "expected a constant fraction of triples to be tight"
+
+
+def test_theorem_c_converse_needs_non_negative_overlaps():
+    """The converse fails without the positivity hypothesis.
+
+    A fidelity kernel fixes only the moduli of the overlaps, and those do not determine
+    the Gram matrix up to per-point phases: the Bargmann invariant G_xy G_yz G_zx is
+    gauge invariant but is not a function of the moduli. This builds an explicit second
+    realisation of the same kernel that no isometry-plus-phase carries to the path
+    state, which is why Theorem C restricts the converse.
+    """
+    t = 0.25
+    root = np.sqrt(t)
+    gram = np.array(
+        [[1.0, root, 1j * root], [root, 1.0, root], [-1j * root, root, 1.0]],
+        dtype=complex,
+    )
+    assert np.allclose(gram, gram.conj().T)
+    assert np.linalg.eigvalsh(gram).min() > 1e-9, "counterexample must be PSD"
+
+    # Same fidelity kernel as a depth-1 path state on three leaves with f(0) = t.
+    iu = np.triu_indices(3, k=1)
+    assert np.allclose(np.abs(gram[iu]) ** 2, t)
+
+    from padic_kernel.profiles import Profile
+
+    tree = build_padic_tree(3, 1)
+    f = Profile((t, 1.0))
+    psi = EncodingFactory("path_state", profile=f).states(tree, tree.leaves)
+    path_gram = psi @ psi.conj().T
+    assert np.allclose(np.abs(path_gram[iu]) ** 2, t)
+
+    # Equal moduli, different Bargmann invariant: not related by isometry and phases.
+    def bargmann(g: np.ndarray) -> complex:
+        return complex(g[0, 1] * g[1, 2] * g[2, 0])
+
+    assert not np.isclose(bargmann(gram), bargmann(path_gram))
+    assert np.isclose(bargmann(path_gram).imag, 0.0)
+
+
+def test_theorem_a_block_bound_is_tight_at_one_block():
+    """With a single block the path state is itself a block-product map.
+
+    Theorem A must therefore not claim three kernel values for block-product maps in
+    general; that conclusion is specific to genuine product maps. Here max B* = n, so
+    the theorem's conclusion is vacuous, as it should be.
+    """
+    tree, lca = _setup(2, 4)
+    f = geometric_profile(4, 2, 1.0)
+    k = fidelity_gram(EncodingFactory("path_state", profile=f).states(tree, tree.leaves))
+    assert len(np.unique(np.round(k, 9))) == 5  # n + 1 values, not three
