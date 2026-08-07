@@ -4,14 +4,17 @@ Exactness is a statement about an ideal kernel; on hardware the kernel is estima
 from finitely many shots of a noisy state. The two error sources fail in genuinely
 different ways, and the experiment separates them.
 
-**Depolarising noise is a bias, and it is harmless to ultrametricity.** It sends
-``K -> (1 - r)K + r/D``, hence ``d -> (1 - r)d + r(1 - 1/D)``, an increasing affine
-map. Affine maps commute with ``max`` and preserve order, so the strong triangle
-inequality survives *exactly*, at any rate. What it destroys is contrast: the profile
-flattens, and resolution collapses as ``r -> 1``. This is Proposition D in the paper
-and is verified in ``test_proposition_d_depolarising_preserves_ultrametricity_exactly``.
+**Depolarising noise is a bias, and it cannot break the strong triangle inequality.**
+It sends ``K -> (1 - r)K + r/D`` for the *register* dimension ``D``, hence
+``d -> (1 - r)d + r(1 - 1/D)``, a non-decreasing affine map. Such maps commute with
+``max`` and preserve order, so the inequality survives *exactly*, at any rate. What it
+destroys is contrast: the profile flattens and resolution collapses as ``r -> 1``. This
+is Proposition D in the paper, verified in
+``test_proposition_d_depolarising_preserves_ultrametricity_exactly``. Note the profile
+of the noisy kernel no longer satisfies ``f(n) = 1``, so strictly it is level constancy
+plus the strong triangle inequality that survive, not ultrametricity as defined.
 
-**Sampling noise is variance, and it is what actually breaks ultrametricity.** In an
+**Sampling noise is variance, and it is what actually breaks the inequality.** In an
 ultrametric every triangle is isoceles with its two longest sides equal, so a constant
 fraction of triples -- over a quarter, on the trees here -- satisfies the inequality
 with equality. An arbitrarily small perturbation flips about half of those into
@@ -31,7 +34,12 @@ import numpy as np
 
 from experiments.common import build_dataset, parse_args, save_run, savefig
 from padic_kernel.encoding import EncodingFactory
-from padic_kernel.kernels import depolarise, fidelity_gram, sample_kernel
+from padic_kernel.kernels import (
+    depolarise,
+    fidelity_gram,
+    register_dimension,
+    sample_kernel,
+)
 from padic_kernel.metrics import (
     level_constancy,
     profile_residual,
@@ -61,7 +69,8 @@ def main() -> None:
     f = geometric_profile(ds.height, cfg.profile_base, cfg.profile_s)
     psi = EncodingFactory("path_state", profile=f).states(ds.tree, ds.leaves)
     exact = fidelity_gram(psi)
-    dim = int(psi.shape[1])
+    # The register, not the support: Proposition D's floor is 1 / 2**ceil(log2 |V|).
+    dim = register_dimension(int(psi.shape[1]))
 
     records = []
     for rate, shots in itertools.product(RATES, SHOTS):
@@ -134,7 +143,8 @@ def main() -> None:
             "levels_present": int(np.unique(lca).size),
             "dataset": cfg.dataset,
             "leaves": int(len(ds.leaves)),
-            "dim": dim,
+            "support": int(psi.shape[1]),
+            "register_dim": dim,
             "repeats": REPEATS,
         },
     )

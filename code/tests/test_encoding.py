@@ -135,3 +135,24 @@ def test_reupload_distortion_grows_with_gamma():
         _, excess = strong_triangle_violations(1.0 - fidelity_gram(enc.states(tree, tree.leaves)))
         excesses.append(max(excess, 0.0))
     assert excesses[0] <= 1e-12 < excesses[1] < excesses[2]
+
+
+def test_register_dimension_rounds_up_to_a_power_of_two():
+    """The depolarising floor is set by the register, not by the state's support.
+
+    A path state on |V| basis vectors is held in 2**ceil(log2 |V|) amplitudes, and it is
+    the register that depolarises. The p-adic tree's node count is essentially never a
+    power of two, so the two differ in general.
+    """
+    from padic_kernel.kernels import register_dimension
+
+    assert register_dimension(63) == 64
+    assert register_dimension(64) == 64
+    assert register_dimension(65) == 128
+    assert register_dimension(1) == 1
+    with pytest.raises(ValueError, match="positive"):
+        register_dimension(0)
+
+    tree = build_padic_tree(2, 5)
+    assert tree.num_nodes == 63
+    assert register_dimension(tree.num_nodes) == 64

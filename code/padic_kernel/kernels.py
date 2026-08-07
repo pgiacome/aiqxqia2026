@@ -8,7 +8,13 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["depolarise", "fidelity_gram", "overlap_gram", "sample_kernel"]
+__all__ = [
+    "depolarise",
+    "fidelity_gram",
+    "overlap_gram",
+    "register_dimension",
+    "sample_kernel",
+]
 
 
 def overlap_gram(psi: np.ndarray) -> np.ndarray:
@@ -23,14 +29,29 @@ def fidelity_gram(psi: np.ndarray) -> np.ndarray:
     return np.clip(k, 0.0, 1.0)
 
 
+def register_dimension(support: int) -> int:
+    """The Hilbert-space dimension of the register holding a ``support``-dim state.
+
+    A state on ``|V|`` basis vectors occupies ``2**ceil(log2 |V|)`` amplitudes once it
+    is laid out in qubits, and it is the register that depolarises. Using ``|V|`` here
+    would put the maximally mixed floor at the wrong value whenever ``|V|`` is not a
+    power of two, which it generally is not: the p-adic tree has
+    ``(p**(n+1) - 1)/(p - 1)`` nodes.
+    """
+    if support < 1:
+        raise ValueError("support must be positive")
+    return 1 << (support - 1).bit_length()
+
+
 def depolarise(kernel: np.ndarray, rate: float, dim: int) -> np.ndarray:
     """Global depolarising model on the compute-uncompute kernel estimator.
 
-    The estimator reads off the probability of the all-zeros outcome. Replacing the
-    state by the maximally mixed state with probability ``rate`` sends that
-    probability to ``1 / dim``, so ``K -> (1 - rate) K + rate / dim``. Because the
-    fidelity moves towards ``1 / dim`` rather than towards zero, a large ``rate``
-    flattens the kernel, which is exactly what destroys the hierarchy.
+    ``dim`` is the *register* dimension, i.e. :func:`register_dimension` of the state's
+    support, not the support itself. The estimator reads off the probability of the
+    all-zeros outcome. Replacing the state by the maximally mixed state with probability
+    ``rate`` sends that probability to ``1 / dim``, so ``K -> (1 - rate) K + rate / dim``.
+    Because the fidelity moves towards ``1 / dim`` rather than towards zero, a large
+    ``rate`` flattens the kernel, which is exactly what destroys the hierarchy.
 
     The diagonal is pinned to 1: ``K(x, x)`` is never actually measured in a
     kernel-matrix protocol, it is filled in by definition.

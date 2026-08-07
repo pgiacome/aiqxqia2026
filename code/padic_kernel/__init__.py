@@ -1,7 +1,13 @@
 """Ultrametric quantum kernels: exact p-adic feature maps for hierarchical data."""
 
 from padic_kernel.encoding import Encoding, EncodingFactory, register_encoding
-from padic_kernel.kernels import depolarise, fidelity_gram, overlap_gram, sample_kernel
+from padic_kernel.kernels import (
+    depolarise,
+    fidelity_gram,
+    overlap_gram,
+    register_dimension,
+    sample_kernel,
+)
 from padic_kernel.metrics import (
     dimension_lower_bound,
     gromov_delta,
@@ -61,6 +67,7 @@ __all__ = [
     "pad_to_uniform_depth",
     "profile_residual",
     "qubit_lower_bound",
+    "register_dimension",
     "register_encoding",
     "regular_tree_dimension_bound",
     "regular_tree_qubit_bound",
