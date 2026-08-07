@@ -56,11 +56,11 @@ We therefore report two quantities throughout.
 
 \begin{definition}[Level constancy and resolution depth]
   \label{def:diagnostics}
-  Let $V(K) = \{\, v : \lcadepth(x,y) = v \text{ for some pair of leaves} \,\}$ be
-  the set of \emph{populated} levels. The \emph{level constancy} is
+  Call a level $v$ \emph{populated} if some pair of leaves has $\lcadepth(x,y) = v$,
+  and let $V(K)$ collect them. The \emph{level constancy} is
   \begin{equation*}
-    \max_{v \in V(K)} \Bigl( \max_{\lcadepth(x,y)=v} K(x,y)
-      - \min_{\lcadepth(x,y)=v} K(x,y) \Bigr),
+    \max_{v \in V(K)} \bigl( \max K_v - \min K_v \bigr),
+    \qquad K_v = \{\, K(x,y) : \lcadepth(x,y) = v \,\},
   \end{equation*}
   which vanishes exactly when $K$ is ultrametric with some profile. Writing
   $\mu_v$ for the mean of $K$ over level $v$, the \emph{resolution depth} is the

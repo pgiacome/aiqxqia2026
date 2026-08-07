@@ -103,7 +103,7 @@ and the following corollary makes that quantitative.
   $p^{n} / \Theta(n)$ and \Cref{cor:no-n-qubit} no longer follows from it. This is not
   an artefact of the proof: a slowly decaying profile really is easier to represent,
   because it is closer to constant. We record the boundary rather than quietly assuming
-  it away (\texttt{test\_theorem\_b\_requires\_s\_greater\_than\_one}).
+  it away (\testname{test_theorem_b_requires_s_greater_than_one}).
 \end{remark}
 
 \begin{remark}[Theorems A and B are independent]
@@ -115,17 +115,17 @@ and the following corollary makes that quantitative.
   argument that closes the product case there. Conversely \Cref{thm:product-nogo} says
   nothing about entangling maps at any radix. Neither theorem subsumes the other, and
   we present them as covering different regimes rather than as a chain
-  (\texttt{test\_theorem\_b\_does\_not\_subsume\_theorem\_a\_at\_radix\_two}).
+  (\testname{test_theorem_b_does_not_subsume_theorem_a_at_radix_two}).
 \end{remark}
 
 \paragraph{Numerical verification.}
 The closed form \cref{eq:row-sum} matches the empirical row sum to machine precision
-(\texttt{test\_theorem\_b\_closed\_form\_row\_sum}); the bound exceeds $2^{n}$ for
+(\testname{test_theorem_b_closed_form_row_sum}); the bound exceeds $2^{n}$ for
 $(p,n) \in \{(3,2),(3,3),(3,4),(5,2)\}$
-(\texttt{test\_theorem\_b\_rules\_out\_every\_n\_qubit\_encoding}); and the ZZ feature
+(\testname{test_theorem_b_rules_out_every_n_qubit_encoding}); and the ZZ feature
 map, which lives in $2^{n}$ dimensions, falls below the bound and indeed fails to
 reproduce the profile
-(\texttt{test\_theorem\_b\_zz\_feature\_map\_is\_below\_the\_bound}).
+(\testname{test_theorem_b_zz_feature_map_is_below_the_bound}).
 
 Two cautions on applying \cref{eq:dimension-bound} in practice. Evaluated on a
 subsample of $L'$ leaves it remains valid --- restricting the point set can only make

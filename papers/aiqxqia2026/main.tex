@@ -40,6 +40,10 @@
 \DeclareMathOperator{\rank}{rank}
 \DeclareMathOperator{\tr}{tr}
 
+%% Test names are long and unhyphenatable in \texttt, which overruns the text block.
+%% \nolinkurl (from hyperref, already loaded by ceurart) breaks at underscores.
+\newcommand{\testname}[1]{{\small\nolinkurl{#1}}}
+
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}

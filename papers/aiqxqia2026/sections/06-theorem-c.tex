@@ -71,7 +71,7 @@ fills the gap exactly, and turns out to characterise the whole family.
   First, the converse cannot say ``unique up to relabelling of $V$''. Rotating every
   $\pathstate{x}$ by a fixed unitary, or multiplying each by its own phase, leaves the
   fidelity kernel unchanged while destroying the reading of the basis as tree nodes
-  (\texttt{test\_theorem\_c\_uniqueness\_up\_to\_isometry\_and\_phase}). The
+  (\testname{test_theorem_c_uniqueness_up_to_isometry_and_phase}). The
   node-labelled form \cref{eq:path-state} is the canonical representative of its
   isometry class, not the only member.
 
@@ -94,7 +94,7 @@ fills the gap exactly, and turns out to characterise the whole family.
   to the other. The correspondence $f \leftrightarrow \Phi_f$ is therefore a bijection
   onto strictly monotone ultrametric kernels only after restricting to realisations with
   non-negative overlaps
-  (\texttt{test\_theorem\_c\_converse\_needs\_non\_negative\_overlaps}).
+  (\testname{test_theorem_c_converse_needs_non_negative_overlaps}).
 \end{remark}
 
 \begin{remark}[Positive semi-definiteness for free]
@@ -110,20 +110,19 @@ fills the gap exactly, and turns out to characterise the whole family.
 \subsection{Resources}
 \label{subsec:resources}
 
-The path state lives in $\C^{V}$, so it needs $\lceil \log_2 \abs{V} \rceil$ qubits.
-Critically, it has only $n+1$ non-zero amplitudes out of $\abs{V}$, so it is a sparse
-state. In a level-indexed layout, where the register splits into a depth counter and a
-within-level index, preparation is a cascade of $n$ controlled rotations --- one per
-level, each splitting the remaining amplitude between ``stop here'' and ``descend'' ---
-followed, at each level, by writing the within-level index of $\anc_i(x)$ conditioned on
-the depth register. Counting both parts gives $O(n \log \abs{V})$ elementary gates. We
-quote that figure throughout; the $O(n)$ rotations alone are not the whole cost.
+The path state lives in $\C^{V}$, so it needs $\lceil \log_2 \abs{V} \rceil$ qubits,
+and it has only $n+1$ non-zero amplitudes. In a level-indexed layout, where the register
+splits into a depth counter and a within-level index, preparation is a cascade of $n$
+controlled rotations, one per level, each splitting the remaining amplitude between
+``stop here'' and ``descend'', followed at each level by writing the within-level index
+of $\anc_i(x)$ conditioned on the depth register. Both parts together give
+$O(n \log \abs{V})$ elementary gates, which is the figure we quote; the $n$ rotations
+alone are not the whole cost.
 
 \begin{table}
   \centering
-  \caption{Resources for the path-state encoding, and the \Cref{thm:dimension-bound}
-    bound it must respect. Dataset rows use the depth-8 truncation of
-    \Cref{sec:experiments}; the WordNet row is the full hierarchy before truncation.}
+  \caption{Resources for the path-state encoding. The WordNet row is the full
+    hierarchy, before the truncation \Cref{sec:experiments} applies to the baselines.}
   \label{tab:resources}
   \begin{tabular}{lrrrr}
     \toprule
@@ -133,37 +132,25 @@ quote that figure throughout; the $O(n)$ rotations alone are not the whole cost.
       & $O(n \log \abs{V})$ \\
     $\Zpn$ & $\frac{p^{n+1}-1}{p-1}$ & $\approx n \log_2 p$ & $n+1$ & $O(n^{2}\log p)$ \\
     WordNet (full) & $\EOneSourceNodes$ & $17$ & $\EOneSourceHeight + 1$ & --- \\
-    WordNet (truncated) & $\PathStateNodes$ & $\PathStateQubits$ & $\EOneHeight + 1$
-      & --- \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\Cref{tab:resources} collects the counts. The headline is that the full WordNet noun
-hierarchy --- $\EOneSourceNodes$ nodes --- fits in $17$ qubits, with $\EOneSourceHeight
-+ 1$ non-zero amplitudes.
-
-\paragraph{Optimality.}
-Comparing with \Cref{cor:no-n-qubit}: on $\Zpn$ the construction uses
-$\log_2 \abs{V} = n \log_2 p + \log_2 \frac{p}{p-1} + o(1)$ qubits, while the bound
+\Cref{tab:resources} collects the counts: the full WordNet noun hierarchy, at
+$\EOneSourceNodes$ nodes, fits in $17$ qubits with $\EOneSourceHeight + 1$ non-zero
+amplitudes. Comparing with \Cref{cor:no-n-qubit}, on $\Zpn$ the construction uses
+$\log_2 \abs{V} = n \log_2 p + \log_2 \frac{p}{p-1} + o(1)$ qubits while the bound
 demands at least $n \log_2 p - \log_2 S(p,s)$. The two differ by an additive constant
-independent of $n$, so the path-state encoding is optimal up to $O(1)$ qubits. We
-resist the stronger phrasing: it is not exactly optimal, and the gap is a genuine, if
-small, one.
+independent of $n$, so the encoding is optimal up to $O(1)$ qubits. We resist the
+stronger phrasing: it is not exactly optimal, and the gap is genuine if small.
 
 \subsection{The $p$-adic specialisation}
 \label{subsec:padic-specialisation}
 
-On the regular $p$-ary tree, $\lcadepth(x,y) = \min(\vp(x-y), n)$ and the profile can
-be tied directly to the $p$-adic absolute value. With $\abs{x-y}_p = p^{-\lcadepth}$ for
-$x \ne y$, the geometric profile is
-\begin{equation}
-  \label{eq:padic-profile}
-  f(\lcadepth) = p^{-(n-\lcadepth)s}
-  = \Bigl( \frac{p^{-n}}{\abs{x-y}_p} \Bigr)^{\!s} ,
-\end{equation}
-so the kernel is a decreasing power of the $p$-adic distance, with $f(n) = 1$ filling in
-the value at $x = y$ where $\abs{x-y}_p = 0$. The path state is then a level-weighted superposition over the
+On the regular $p$-ary tree $\lcadepth(x,y) = \min(\vp(x-y), n)$, so with
+$\abs{x-y}_p = p^{-\lcadepth}$ for $x \ne y$ the geometric profile is
+$f(\lcadepth) = p^{-(n-\lcadepth)s} = ( p^{-n} / \abs{x-y}_p )^{s}$: a decreasing power
+of the $p$-adic distance, with $f(n) = 1$ supplying the value at $x = y$. The path state is then a level-weighted superposition over the
 root-to-leaf path in the $p$-adic tree, with amplitude concentrated near the leaf for
 large $s$ and spread towards the root for small $s$. This is the same object that
 appears as the state space of continuous-time quantum walks on $p$-adic trees, where
@@ -174,18 +161,17 @@ encoding to the $p$-adic quantum formalism of \citet{AnielloEtAl2023PadicQubit}.
 \subsection{Arbitrary rooted trees}
 \label{subsec:general-trees}
 
-Nothing in the proof of \Cref{thm:path-states} uses regularity. The only structural
-input is \cref{eq:overlap}, which needs just that ancestors nest --- true in any rooted
-tree. Branching factors may vary between nodes and between levels, and shallow leaves
-are handled by the unary padding of \Cref{sec:problem}, which changes no lowest common
-ancestor. The construction therefore applies verbatim to WordNet, whose branching
-factor ranges from $1$ to $402$, and $\Zpn$ is the homogeneous specialisation rather
-than the setting
-(\texttt{test\_theorem\_c\_generalises\_to\_a\_non\_homogeneous\_tree}).
+Nothing in the proof uses regularity. The only structural input is \cref{eq:overlap},
+which needs just that ancestors nest, true in any rooted tree. Branching factors may
+vary between nodes and levels, and shallow leaves are handled by the unary padding of
+\Cref{sec:problem}. The construction therefore applies verbatim to WordNet, whose
+branching factor ranges from $1$ to $402$, and $\Zpn$ is the homogeneous specialisation
+rather than the setting
+(\testname{test_theorem_c_generalises_to_a_non_homogeneous_tree}).
 
 \paragraph{Numerical verification.}
 Across $(p,n) \in \{(2,3), (3,2), (2,4), (5,2)\}$ and both geometric and linear
 profiles, the residual $\max_{x,y} \abs{K - f(\lcadepth)}$ is at most
 $\EThreeWorstResidual$, and the induced distance has zero strong-triangle violations
-(\texttt{test\_theorem\_c\_path\_states\_realise\_the\_profile\_exactly},
-\texttt{test\_theorem\_c\_induced\_distance\_is\_exactly\_ultrametric}).
+(\testname{test_theorem_c_path_states_realise_the_profile_exactly},
+\testname{test_theorem_c_induced_distance_is_exactly_ultrametric}).

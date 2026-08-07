@@ -76,14 +76,12 @@ particular instances.
   about product maps]
   \label{rem:block-tightness}
   Nothing in \Cref{def:block-product-map} forbids the single-block partition
-  $\mathcal{B} = \{\{1, \dots, n\}\}$, and with one block the path state of
-  \Cref{thm:path-states} is itself a block-product map realising a strictly monotone
-  profile with $n+1$ distinct values. The theorem is consistent with this:
-  $\max B^{*} = n$, so the conclusion $f(v) = 1$ for $v \ge n$ is vacuous. What the
-  theorem constrains is how far a block-product map can resolve \emph{beyond} the block
-  containing the first informative level, and for genuinely factorised encodings ---
-  where blocks are small --- that is a severe constraint. It is only for
-  $\abs{B^{*}} = 1$ that it collapses to three values.
+  $\mathcal{B} = \{\{1, \dots, n\}\}$, under which the path state of
+  \Cref{thm:path-states} is itself a block-product map realising $n+1$ distinct values.
+  The theorem is consistent with this, since $\max B^{*} = n$ makes its conclusion
+  vacuous. What it constrains is how far a map can resolve \emph{beyond} the block
+  containing the first informative level, which is severe when blocks are small; only at
+  $\abs{B^{*}} = 1$ does it collapse to three values.
 \end{remark}
 
 \begin{corollary}
@@ -113,10 +111,10 @@ kernel is the identity, its induced distance is the discrete metric, and it sati
 In all trials --- five seeds at each of
 $(p, n) \in \{(2,3), (3,2), (2,4), (5,2)\}$ --- randomly drawn product maps failed level
 constancy
-(\texttt{test\_theorem\_a\_random\_product\_maps\_are\_never\_strictly\_monotone}). A
+(\testname{test_theorem_a_random_product_maps_are_never_strictly_monotone}). A
 product map built to satisfy the conclusion, with one non-trivial level and the rest
 trivial, yields exactly two distinct kernel values as predicted
-(\texttt{test\_theorem\_a\_ultrametric\_product\_map\_resolves\_only\_one\_level}), and
+(\testname{test_theorem_a_ultrametric_product_map_resolves_only_one_level}), and
 switching on a second non-trivial level destroys level constancy, which is the
 contradiction the proof derives
-(\texttt{test\_theorem\_a\_a\_nontrivial\_deep\_factor\_destroys\_ultrametricity}).
+(\testname{test_theorem_a_a_nontrivial_deep_factor_destroys_ultrametricity}).

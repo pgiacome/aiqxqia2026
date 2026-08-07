@@ -2,56 +2,42 @@
 \section{Limitations and Outlook}
 \label{sec:limitations}
 
-\paragraph{No quantum speedup in kernel evaluation.}
+\paragraph{Scope of the claims.}
 Restating the point of \Cref{sec:introduction} where a reader will look for it:
-$K(x,y) = f(\lcadepth(x,y))$ is computable classically in time linear in the tree
-depth, so nothing here accelerates kernel evaluation. The obstructions of
-\Cref{thm:product-nogo,thm:dimension-bound} constrain quantum encoding design, and the
-construction of \Cref{thm:path-states} is useful as an input stage for deeper quantum
-models, where the closed form does not survive subsequent layers. Neither is a speedup
-claim.
-
-\paragraph{Multiple inheritance is discarded.}
-All three real hierarchies are directed acyclic graphs, and the longest-path reduction
-of \Cref{subsec:setup} throws away every hypernym but one. A synset with two genuinely
-distinct parents is misrepresented. Extending the construction to DAGs is not a matter
-of a better reduction: the ancestor sets of two leaves in a DAG need not be nested, and
-\cref{eq:overlap} --- the entire content of \Cref{thm:path-states} --- depends on that
-nesting.
-
-\paragraph{Truncation.}
-Comparing against $2^{\text{height}}$-dimensional baselines forced a depth-$8$
-truncation. The path-state encoding itself has no such limit --- \Cref{tab:resources}
-gives $17$ qubits for the untruncated WordNet hierarchy --- so the truncation is a
-constraint of the comparison, not of the method. We have not measured the baselines at
-full depth, because they cannot be represented there.
-
-\paragraph{The dimension bound is loose for flat profiles.}
+$K(x,y) = f(\lcadepth(x,y))$ is computable classically in time linear in the tree depth,
+so nothing here accelerates kernel evaluation. The obstructions constrain quantum
+encoding design and the construction is useful as an input stage for deeper models;
+neither is a speedup claim. Two further boundaries are worth naming.
 \Cref{thm:dimension-bound} is strong when the profile decays quickly and weak when it
-does not, and \Cref{rem:s-greater-one} shows the hypothesis $s > 1$ is necessary rather
-than convenient. For slowly decaying profiles the bound does not rule out narrow
-encodings, and we do not know whether narrow encodings actually exist in that regime.
+does not --- \Cref{rem:s-greater-one,rem:scope} show the hypothesis $s > 1$ is necessary
+rather than convenient, and for slowly decaying profiles we do not know whether narrow
+encodings exist. And as \Cref{subsec:e2} reports, the path state loses on classification
+accuracy to both a random product map and to v-PuNNs; the paper's claims rest on
+\Cref{thm:product-nogo,thm:dimension-bound,thm:path-states} and on E1, not on E2.
+
+\paragraph{Preprocessing discards real structure.}
+All three hierarchies are directed acyclic graphs, and the longest-path reduction of
+\Cref{subsec:setup} throws away every hypernym but one, so a synset with two genuinely
+distinct parents is misrepresented. Extending the construction to DAGs is not a matter
+of choosing a better reduction: ancestor sets in a DAG need not be nested, and
+\cref{eq:overlap} --- the entire content of \Cref{thm:path-states} --- depends on that
+nesting. Separately, comparing against $2^{\text{height}}$-dimensional baselines forced
+a depth-$\EOneHeight$ truncation. The path-state encoding has no such limit,
+\Cref{tab:resources} giving $17$ qubits for untruncated WordNet, so this constrains the
+comparison rather than the method; we have not measured the baselines at full depth
+because they cannot be represented there.
 
 \paragraph{Simulation only.}
 Everything here is statevector simulation. \Cref{prop:depolarising} covers the global
-depolarising channel analytically, and \Cref{subsec:e5} gives a shot budget of
+depolarising channel analytically and \Cref{subsec:e5} gives a shot budget of
 $\ShotBudget$ per kernel entry, but coherent errors, readout error and device-specific
-noise are untested. The shot budget is also per entry, so a full $m \times m$ kernel
-matrix costs $O(m^{2})$ times that, which is the practical barrier to using this at
-scale on hardware.
-
-\paragraph{E2 is parity evidence, not a win.}
-As reported in \Cref{subsec:e2}, the path state loses on classification accuracy to
-both a random product map and to v-PuNNs. The paper's claims rest on
-\Cref{thm:product-nogo,thm:dimension-bound,thm:path-states} and on E1, not on E2.
+noise are untested. The budget is per entry, so a full $m \times m$ kernel matrix costs
+$O(m^{2})$ times that, which is the practical barrier to hardware use at scale.
 
 \paragraph{Outlook.}
-Three directions seem worth pursuing. The most immediate is using the path state as the
-input layer of a deeper variational model, where \Cref{subsec:e4} suggests the
-interesting regime is small distortion rather than large. The second is the $p$-adic
-connection: the encoding lives in the state space of quantum walks on the $p$-adic tree
-\citep{ZunigaGalindo2024QuantumWalks}, and relating the profile $f$ to the spectrum of
-a walk generator would give a dynamical reading of what is currently a static
-construction. The third is gate synthesis by $p$-adic descent, where the ultrametric
-structure would organise the search rather than the data; that is a longer project and
-we mention it only to place the present work.
+The most immediate direction is using the path state as the input layer of a deeper
+variational model, where \Cref{subsec:e3} suggests the interesting regime is small
+distortion rather than large. The second is the $p$-adic connection: the encoding lives
+in the state space of quantum walks on the $p$-adic tree
+\citep{ZunigaGalindo2024QuantumWalks}, and relating the profile $f$ to the spectrum of a
+walk generator would give a dynamical reading of what is here a static construction.

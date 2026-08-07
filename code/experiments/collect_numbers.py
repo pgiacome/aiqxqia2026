@@ -179,62 +179,78 @@ PRETTY = {
 }
 
 
-def e1_table(outputs: Path) -> str:
-    """Per-dataset E1 summary: violations, level constancy, resolution depth."""
-    runs = _all_runs(outputs, "e1_ultrametricity")
-    rows = ["\\begin{tabular}{llrrr}", "\\toprule",
-            "dataset & encoding & violation rate & level constancy "
-            "& resolution \\\\", "\\midrule"]
-    for run in runs:
-        recs = [r for r in run["records"] if "violations" in r]
-        wanted = ["path_state", "basis", "angle", "zz", "random_product"]
-        first = True
-        for name in wanted:
-            rec = next((r for r in recs if r["encoding"] == name), None)
-            if rec is None:
-                continue
-            label = PRETTY[str(run["dataset"])] if first else ""
-            first = False
-            emph = r"\textbf{%s}" if name == "path_state" else "%s"
-            rows.append(
-                f"{label} & {emph % PRETTY[name]} & ${fmt(rec['violation_rate'])}$ & "
-                f"${fmt(rec['level_constancy'])}$ & "
-                f"{rec['resolution_depth']} / {run['max_resolution_depth']} \\\\"
-            )
-        rows.append("\\addlinespace")
+def _pivot(runs, encodings, metrics, header):
+    """Encodings as rows, datasets as column groups. Far more compact than the
+    dataset-major layout, which needs one row per (dataset, encoding) pair."""
+    ncols = len(runs) * len(metrics)
+    rows = ["\\begin{tabular}{l" + "r" * ncols + "}", "\\toprule"]
+    groups = " & ".join(
+        f"\\multicolumn{{{len(metrics)}}}{{c}}{{{PRETTY[str(r['dataset'])]}}}" for r in runs
+    )
+    rows.append(f"encoding & {groups} \\\\")
+    spans = []
+    col = 2
+    for _ in runs:
+        spans.append(f"\\cmidrule(lr){{{col}-{col + len(metrics) - 1}}}")
+        col += len(metrics)
+    rows.append("".join(spans))
+    rows.append("& " + " & ".join(header * len(runs)) + " \\\\")
+    rows.append("\\midrule")
+    for name in encodings:
+        label = PRETTY[name]
+        if name == "path_state":
+            label = f"\\textbf{{{label}}}"
+        cells = []
+        for run in runs:
+            rec = next((r for r in run["records"] if r.get("encoding") == name), None)
+            for _metric, fmt_cell in metrics:
+                cells.append("---" if rec is None else fmt_cell(rec, run))
+        rows.append(f"{label} & " + " & ".join(cells) + " \\\\")
     rows.append("\\bottomrule")
     rows.append("\\end{tabular}")
     return "\n".join(rows)
+
+
+def e1_table(outputs: Path) -> str:
+    """Level constancy and resolution depth, encodings by dataset.
+
+    Real hierarchies only: the synthetic trees get a systematic sweep in E3, and
+    including them here makes the table overrun the text block.
+    """
+    runs = [r for r in _all_runs(outputs, "e1_ultrametricity") if r["dataset"] != "synthetic"]
+    metrics = [
+        ("level_constancy", lambda r, run: f"${fmt(r['level_constancy'], 2)}$"),
+        (
+            "resolution_depth",
+            lambda r, run: f"{r['resolution_depth']}/{run['max_resolution_depth']}",
+        ),
+    ]
+    return _pivot(
+        runs,
+        ["path_state", "basis", "angle", "zz", "random_product"],
+        metrics,
+        ["l.c.", "res."],
+    )
 
 
 def e2_table(outputs: Path) -> str:
-    """Per-dataset E2 summary: leaf accuracy and Spearman rho."""
-    runs = _all_runs(outputs, "e2_classification")
-    rows = ["\\begin{tabular}{llrr}", "\\toprule",
-            "dataset & encoding & leaf accuracy & Spearman $\\rho$ \\\\",
-            "\\midrule"]
-    for run in runs:
-        recs = [r for r in run["records"] if "leaf_accuracy" in r]
-        wanted = ["path_state", "angle", "zz", "random_product", "basis", "rbf_integer"]
-        first = True
-        for name in wanted:
-            rec = next((r for r in recs if r["encoding"] == name), None)
-            if rec is None:
-                continue
-            label = PRETTY[str(run["dataset"])] if first else ""
-            first = False
-            emph = r"\textbf{%s}" if name == "path_state" else "%s"
-            rho = rec["spearman_rho"]
-            rho_cell = "---" if rho is None else f"${fmt(rho)}$"
-            rows.append(
-                f"{label} & {emph % PRETTY[name]} & "
-                f"${fmt(rec['leaf_accuracy'])} \\pm {fmt(rec['leaf_accuracy_std'])}$ & "
-                f"{rho_cell} \\\\"
-            )
-        rows.append("\\addlinespace")
-    rows.append("\\bottomrule")
-    rows.append("\\end{tabular}")
-    return "\n".join(rows)
+    """Leaf accuracy and Spearman rho, encodings by dataset (real hierarchies only)."""
+    runs = [r for r in _all_runs(outputs, "e2_classification") if r["dataset"] != "synthetic"]
+    metrics = [
+        ("leaf_accuracy", lambda r, run: f"${fmt(r['leaf_accuracy'], 2)}$"),
+        (
+            "spearman_rho",
+            lambda r, run: "---"
+            if r["spearman_rho"] is None
+            else f"${fmt(r['spearman_rho'], 2)}$",
+        ),
+    ]
+    return _pivot(
+        runs,
+        ["path_state", "angle", "zz", "random_product", "basis", "rbf_integer"],
+        metrics,
+        ["acc.", "$\\rho$"],
+    )
 
 
 def dataset_table(outputs: Path) -> str:
