@@ -62,22 +62,28 @@ We therefore report two quantities throughout.
     \max_{v \in V(K)} \bigl( \max K_v - \min K_v \bigr),
     \qquad K_v = \{\, K(x,y) : \lcadepth(x,y) = v \,\},
   \end{equation*}
-  which vanishes exactly when $K$ is ultrametric with some profile. Writing
+  which vanishes exactly when $K$ is constant on each populated level; for a fidelity
+  kernel, whose diagonal is $1$, that is exactly \Cref{def:ultrametric-kernel}. Writing
   $\mu_v$ for the mean of $K$ over level $v$, the \emph{resolution depth} is the
   number of runs in the sequence $(\mu_v)_{v \in V(K)}$ after merging consecutive
   entries differing by at most $\tau$; we take $\tau = 10^{-6}$ throughout, a scale no
   realistic shot budget could resolve (\Cref{subsec:e5}). It equals $\abs{V(K)}$ for a
-  strictly monotone profile and $2$ for the discrete metric.
+  strictly monotone profile whose consecutive values differ by more than $\tau$, and
+  $2$ for the discrete metric. Pairs with $x = y$ count, so $n \in V(K)$ always.
 
   Restricting to populated levels matters on padded and irregular trees, where some $v$
   may carry no pair of leaves at all. At such a $v$ the profile is not determined by
-  $K$, so \Cref{thm:path-states} should be read as a bijection onto profiles restricted
-  to $V(K)$.
+  $K$: two profiles agreeing on $V(K)$ induce the same kernel. Every statement below
+  that recovers $f$ from $K$ is therefore to be read modulo $V(K)$.
 \end{definition}
 
 An encoding is useful for hierarchical data only if it scores well on both: level
-constancy zero, resolution depth full. \Cref{thm:path-states} exhibits the only family
-that does.
+constancy zero, resolution depth full. \Cref{thm:path-states} exhibits a family that
+does, for every strictly monotone profile and every rooted tree. It is not the only
+one --- \Cref{rem:uniqueness} constructs a second realisation of the same kernel that
+is not isometric to it, and \Cref{ex:crossing} gives a one-qubit realisation on a
+depth-one tree --- but among the encodings in common use it is the only one that scores
+well on both, which is what \Cref{sec:experiments} measures.
 
 \subsection{Product and block-product feature maps}
 

@@ -27,10 +27,9 @@ fills the gap exactly, and turns out to characterise the whole family.
     \text{exactly.}
   \end{equation}
   Conversely, every kernel that is ultrametric with a strictly monotone profile arises
-  this way, and $\Phi_f$ is the unique realisation up to a global isometry and a phase
-  on each point \emph{among realisations whose pairwise overlaps are real and
-  non-negative}. Dropping that restriction, uniqueness fails
-  (\Cref{rem:uniqueness}).
+  this way: among realisations whose pairwise overlaps are real and non-negative,
+  $\Phi_f$ is unique up to a global isometry. Dropping that restriction, uniqueness
+  fails even up to isometry and per-point phases (\Cref{rem:uniqueness}).
 \end{theorem}
 
 \begin{proof}
@@ -60,8 +59,8 @@ fills the gap exactly, and turns out to characterise the whole family.
   non-negative entries. Then $G^{\Psi}_{xy} = \sqrt{f(\lcadepth(x,y))}$ exactly, which
   by \cref{eq:overlap} is the Gram matrix of $\Phi_f$. Two families of vectors with
   equal Gram matrices are related by an isometry of their spans, which is the standard
-  argument; composing with per-point phases covers the residual freedom that leaves
-  $\abs{\cdot}$ unchanged.
+  argument. No phase freedom remains inside this class: since $f > 0$ every overlap is
+  strictly positive, and a non-constant per-point phase would move $G^{\Psi}$ out of it.
 \end{proof}
 
 \begin{remark}[How far uniqueness actually goes]
@@ -91,10 +90,15 @@ fills the gap exactly, and turns out to characterise the whole family.
   which is positive semi-definite with spectrum $\{0.134, 1, 1.866\}$ and realises the
   same kernel as $\Phi_f$. Its Bargmann invariant is $-\tfrac{1}{8}i$ against
   $+\tfrac{1}{8}$ for the path state, so no isometry and no choice of phases carries one
-  to the other. The correspondence $f \leftrightarrow \Phi_f$ is therefore a bijection
-  onto strictly monotone ultrametric kernels only after restricting to realisations with
-  non-negative overlaps
-  (\testname{test_theorem_c_converse_needs_non_negative_overlaps}).
+  to the other. So $f \mapsto \Phi_f$ is a bijection onto the strictly monotone
+  ultrametric kernels only after two restrictions: to realisations with non-negative
+  overlaps, and --- since profiles agreeing on the populated levels $V(K)$ induce the
+  same kernel (\Cref{def:diagnostics}) --- modulo $V(K)$. On a tree with an unpopulated
+  level, injectivity genuinely fails: a root with two unary-padded children of depth $2$
+  admits both $f = (\tfrac14, \tfrac12, 1)$ and $g = (\tfrac14, \tfrac34, 1)$ for the
+  same kernel, because no pair of leaves meets at depth $1$
+  (\testname{test_theorem_c_converse_needs_non_negative_overlaps},
+  \testname{test_theorem_c_profile_is_determined_only_on_populated_levels}).
 \end{remark}
 
 \begin{remark}[Positive semi-definiteness for free]
@@ -110,9 +114,13 @@ fills the gap exactly, and turns out to characterise the whole family.
 \subsection{Resources}
 \label{subsec:resources}
 
-The path state lives in $\C^{V}$, so it needs $\lceil \log_2 \abs{V} \rceil$ qubits,
-and it has only $n+1$ non-zero amplitudes. In a level-indexed layout, where the register
-splits into a depth counter and a within-level index, preparation is a cascade of $n$
+The path state lives in $\C^{V}$, so a dense layout needs
+$\lceil \log_2 \abs{V} \rceil$ qubits, and it has only $n+1$ non-zero amplitudes. The
+gate count below is for a \emph{level-indexed} layout, which splits the register into a
+depth counter and a within-level index and therefore costs
+$\lceil \log_2 (n+1) \rceil + \lceil \log_2 W \rceil$ qubits for maximum level width
+$W$ --- slightly more than the dense layout, by about $\log_2 n$ on $\Zpn$. In that
+layout, preparation is a cascade of $n$
 controlled rotations, one per level, each splitting the remaining amplitude between
 ``stop here'' and ``descend'', followed at each level by writing the within-level index
 of $\anc_i(x)$ conditioned on the depth register. Both parts together give
@@ -140,9 +148,11 @@ alone are not the whole cost.
 $\EOneSourceNodes$ nodes, fits in $17$ qubits with $\EOneSourceHeight + 1$ non-zero
 amplitudes. Comparing with \Cref{cor:no-n-qubit}, on $\Zpn$ the construction uses
 $\log_2 \abs{V} = n \log_2 p + \log_2 \frac{p}{p-1} + o(1)$ qubits while the bound
-demands at least $n \log_2 p - \log_2 S(p,s)$. The two differ by an additive constant
-independent of $n$, so the encoding is optimal up to $O(1)$ qubits. We resist the
-stronger phrasing: it is not exactly optimal, and the gap is genuine if small.
+demands at least $n \log_2 p - \log_2 S(p,s)$. For $s > 1$, where $S(p,s)$ is
+independent of $n$, the two differ by an additive constant and the encoding is optimal
+up to $O(1)$ qubits. We resist the stronger phrasing twice over: it is not exactly
+optimal, and for $s \le 1$ the lower bound weakens (\Cref{rem:s-greater-one}) so the
+gap grows with $n$.
 
 \subsection{The $p$-adic specialisation}
 \label{subsec:padic-specialisation}

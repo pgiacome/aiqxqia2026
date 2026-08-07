@@ -35,9 +35,10 @@
     = \fid{\psi_{B^{*}}(x_{B^{*}})}{\psi_{B^{*}}(y_{B^{*}})} > 0 .
   \end{equation}
 
-  Now let $B$ be a block whose levels all exceed $\max B^{*}$, fix digit tuples
-  $a \ne b$ for it, and let $y'$ agree with $y$ everywhere except on $B$, where
-  $y'_B = b$ while $x_B = a$. Because $x$ and $y'$ still first differ at level
+  Now fix a block $B$ whose levels all exceed $\max B^{*}$ and digit tuples $a \ne b$
+  for it, and re-choose $x, y$ as above with the further constraint $x_B = y_B = a$,
+  which is possible because $B$ does not meet levels $1, \dots, v^{*}+1$. Let $y'$
+  agree with $y$ everywhere except on $B$, where $y'_B = b$. Because $x$ and $y'$ still first differ at level
   $v^{*}+1$, and $B$ lies strictly above $B^{*}$, we still have
   $\lcadepth(x, y') = v^{*}$ and therefore $K(x, y') = f(v^{*})$. Multiplicativity
   gives
@@ -63,8 +64,11 @@
 
   For a product map $\abs{B^{*}} = 1$ and $\max B^{*} = v^{*}+1$, so the profile is $0$
   below $v^{*}$, equal to $f(v^{*})$ at $v^{*}$, and $1$ from $v^{*}+1$ on: three
-  values. A strictly monotone profile has $f(0) > 0$, hence $v^{*} = 0$, and needs
-  $n+1$ distinct values, which exceeds three whenever $n \ge 2$.
+  values. Now suppose the profile is strictly monotone. Then $f(0) > 0$, so $v^{*} = 0$
+  and the value $0$ is never attained, leaving only $\{f(0), 1\}$ --- two values. A
+  strictly monotone profile takes $n+1$ distinct values, so $n + 1 \le 2$, that is
+  $n \le 1$. Hence no product map realises a strictly monotone profile once
+  $n \ge 2$.
 \end{proof}
 
 The proof turns on multiplicativity alone. It is therefore indifferent to the local
@@ -72,8 +76,7 @@ dimensions $d_i$, to whether the local states are real or complex, and to how th
 chosen, which is what makes it a statement about a class of encodings rather than about
 particular instances.
 
-\begin{remark}[The block bound is tight, so the three-value claim is genuinely
-  about product maps]
+\begin{remark}[The three-value claim is genuinely about product maps]
   \label{rem:block-tightness}
   Nothing in \Cref{def:block-product-map} forbids the single-block partition
   $\mathcal{B} = \{\{1, \dots, n\}\}$, under which the path state of
@@ -81,22 +84,27 @@ particular instances.
   The theorem is consistent with this, since $\max B^{*} = n$ makes its conclusion
   vacuous. What it constrains is how far a map can resolve \emph{beyond} the block
   containing the first informative level, which is severe when blocks are small; only at
-  $\abs{B^{*}} = 1$ does it collapse to three values.
+  $\abs{B^{*}} = 1$ does it collapse to three values. Sharpening slightly: for a
+  strictly monotone profile $v^{*} = 0$, so the zero run disappears and the cap is
+  $\abs{B^{*}} + 1$; requiring $n+1 \le \abs{B^{*}} + 1$ then forces
+  $\abs{B^{*}} = n$, a single block. A block-product map realises a strictly monotone
+  ultrametric kernel only by not factorising at all.
 \end{remark}
 
 \begin{corollary}
   \label{cor:standard-encodings}
-  On $\Zpn$ with $n \ge 2$, none of the following induces a strictly monotone
-  ultrametric kernel: angle encoding with one qubit per digit; computational-basis
-  encoding; and any first-order Pauli-$Z$ feature map, whose phase is a sum of
-  single-digit terms and which is therefore a product map.
+  On $\Zpn$ with $n \ge 2$, neither angle encoding with one qubit per digit nor any
+  first-order Pauli-$Z$ feature map --- whose phase is a sum of single-digit terms, so
+  it is a product map --- induces a strictly monotone ultrametric kernel.
 \end{corollary}
 
-Basis encoding deserves a sentence, because it is the case that can be mistaken for a
-success. It attains $v^{*} = n$, outside the hypothesis of \Cref{thm:product-nogo}: its
-kernel is the identity, its induced distance is the discrete metric, and it satisfies
-\cref{eq:strong-triangle} with zero violations while resolving nothing. That is why
-\Cref{subsec:diagnostics} insists on reporting resolution depth alongside violations.
+Computational-basis encoding is excluded too, but by a shorter route that sits outside
+\Cref{thm:product-nogo}'s hypothesis rather than inside it. Its kernel is the identity,
+so $f(0) = 0$ and the profile is not strictly monotone; equivalently $v^{*} = n$. It is
+the case that can be mistaken for a success: the induced distance is the discrete
+metric, which satisfies \cref{eq:strong-triangle} with zero violations while resolving
+nothing. That is why \Cref{subsec:diagnostics} reports resolution depth alongside
+violations.
 
 \begin{remark}[What this theorem does not cover]
   \label{rem:not-covered}
@@ -108,9 +116,8 @@ kernel is the identity, its induced distance is the discrete metric, and it sati
 \end{remark}
 
 \paragraph{Numerical verification.}
-In all trials --- five seeds at each of
-$(p, n) \in \{(2,3), (3,2), (2,4), (5,2)\}$ --- randomly drawn product maps failed level
-constancy
+In all twenty trials --- five seeds at each of $(p,n) = (2,3)$, $(3,2)$, $(2,4)$
+and $(5,2)$ --- randomly drawn product maps failed level constancy
 (\testname{test_theorem_a_random_product_maps_are_never_strictly_monotone}). A
 product map built to satisfy the conclusion, with one non-trivial level and the rest
 trivial, yields exactly two distinct kernel values as predicted

@@ -9,9 +9,10 @@ so nothing here accelerates kernel evaluation. The obstructions constrain quantu
 encoding design and the construction is useful as an input stage for deeper models;
 neither is a speedup claim. Two further boundaries are worth naming.
 \Cref{thm:dimension-bound} is strong when the profile decays quickly and weak when it
-does not --- \Cref{rem:s-greater-one,rem:scope} show the hypothesis $s > 1$ is necessary
-rather than convenient, and for slowly decaying profiles we do not know whether narrow
-encodings exist. And as \Cref{subsec:e2} reports, the path state loses on classification
+does not: \Cref{rem:s-greater-one} shows $s > 1$ buys a uniform threshold rather than
+the exclusion itself, and \Cref{rem:scope} that for profiles flatter than
+$s = \log_p 2$ the bound stops forbidding narrow encodings, where we do not know whether
+they exist. And as \Cref{subsec:e2} reports, the path state loses on classification
 accuracy to both a random product map and to v-PuNNs; the paper's claims rest on
 \Cref{thm:product-nogo,thm:dimension-bound,thm:path-states} and on E1, not on E2.
 

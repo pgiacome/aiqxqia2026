@@ -13,9 +13,9 @@ maps the first argument cannot reach.
 The positive result is that path states close the gap exactly. They realise precisely
 the strictly monotone ultrametric kernels, on arbitrary rooted trees, using a number of
 qubits within an additive constant of the proven lower bound, with $n+1$ non-zero
-amplitudes and $O(n)$ controlled rotations. Their ultrametricity is immune to global
-depolarising noise, and survives finite sampling at a measured budget of $\ShotBudget$
-shots per kernel entry.
+amplitudes and $O(n \log \abs{V})$ gates. Their ultrametricity is immune to global
+depolarising noise, whose effect on distances is affine, and survives finite sampling
+at a measured budget of $\ShotBudget$ shots per kernel entry.
 
 What this does not deliver is a faster kernel. The construction's value is as a
 constraint on encoding design and as an input stage for models where no closed form

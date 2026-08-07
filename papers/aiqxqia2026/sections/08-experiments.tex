@@ -76,8 +76,11 @@ zero violations everywhere, at full resolution: the construction is exact on rea
 hierarchies, not only on the regular trees of \Cref{thm:path-states}. Every product and
 entangling baseline has level constancy near $1$, angle reaching
 $\AngleLevelConstancy$ and the random product map $\RandProdLevelConstancy$, so their
-kernels are not imperfect ultrametrics but not ultrametric at all, as
-\Cref{thm:product-nogo,thm:dimension-bound} predict.
+kernels are not imperfect ultrametrics but not ultrametric at all. For the product maps
+this is \Cref{thm:product-nogo}. For the entangling ZZ map it is consistent with
+\Cref{thm:dimension-bound} but not implied by it: \Cref{cor:no-n-qubit} is stated for
+the regular $p$-ary tree, and these hierarchies are irregular, so the ZZ result here is
+empirical.
 
 Worth stating plainly, because it complicates the headline: \textbf{basis encoding also
 achieves zero violations}, with level constancy exactly zero and resolution
@@ -186,7 +189,8 @@ Finite sampling is the real constraint, and measuring it correctly required aban
 the obvious statistic. The violation count \emph{increases} with the shot budget towards
 a plateau, which looks like a bug and is not: $\TieFraction$ of triples here meet
 \cref{eq:strong-triangle} with equality, and any perturbation flips about half of them,
-so the count converges to the tie fraction rather than to zero. The magnitude behaves as
+so the count converges to roughly half the tie fraction rather than to zero --- the
+observed plateau near $0.30$. The magnitude behaves as
 expected, falling from $\ExcessAtLowShots$ at $\ExcessAtLowShotsCount$ shots to
 $\ExcessAtHighShots$ at $\ExcessAtHighShotsCount$, a factor of $\sqrt{10}$ per decade.
 Defining the budget on the magnitude gives \textbf{$\ShotBudget$ shots per kernel entry}

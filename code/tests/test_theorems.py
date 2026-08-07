@@ -310,14 +310,13 @@ def test_theorem_b_subsampling_understates_the_bound(p, n, s):
 
 
 @pytest.mark.parametrize("p", [2, 3, 5])
-def test_theorem_b_requires_s_greater_than_one(p):
-    """At ``s = 1`` the row sum grows with ``n``, so the bound degrades.
+def test_theorem_b_row_sum_grows_linearly_at_s_equal_one(p):
+    """At ``s = 1`` the row sum grows with ``n``, so no uniform threshold exists.
 
     ``S(p, s, n) = 1 + ((p-1)/p) * sum_m p**(m(1-s))`` is a convergent geometric series
-    only for ``s > 1``. At ``s = 1`` every term is 1 and ``S = 1 + n(p-1)/p``, so the
-    bound falls to ``p**n / Theta(n)`` and the corollary ruling out n-qubit encodings
-    no longer follows from it. The paper states ``s > 1`` as a hypothesis; this pins
-    that it is a real restriction and not decoration.
+    only for ``s > 1``. At ``s = 1`` every term is 1 and ``S = 1 + n(p-1)/p``. What this
+    costs is the n-independent threshold, NOT the exclusion itself -- see
+    ``test_theorem_b_exclusion_survives_s_equal_one``.
     """
     from padic_kernel.metrics import regular_tree_dimension_bound
 
@@ -440,7 +439,7 @@ def test_theorem_a_block_bound_is_tight_at_one_block():
 
 @pytest.mark.parametrize(
     "p,s,expected_S,expected_n0",
-    [(3, 2.0, 4.0 / 3.0, 0.7095), (3, 1.01, 61.3499, 10.1528), (5, 1.5, 1.6472, 0.5406)],
+    [(3, 2.0, 4.0 / 3.0, 0.7095), (3, 1.01, 61.3499, 10.1528), (5, 1.5, 1.6472, 0.5447)],
 )
 def test_theorem_b_threshold_constants_quoted_in_the_paper(p, s, expected_S, expected_n0):
     """Pin the S and n_0 constants the Section 5 example quotes.
@@ -466,3 +465,72 @@ def test_theorem_b_threshold_is_a_valid_sufficient_condition(p, s):
     n0 = np.log2(s_inf) / (np.log2(p) - 1)
     for n in range(int(np.ceil(n0)) + 1, int(np.ceil(n0)) + 8):
         assert regular_tree_qubit_bound(geometric_profile(n, p, s), p, n) > n
+
+
+@pytest.mark.parametrize("p,first_n", [(3, 3), (5, 2)])
+def test_theorem_b_exclusion_survives_s_equal_one(p, first_n):
+    """Losing the uniform threshold at s = 1 does not lose the exclusion.
+
+    An earlier draft claimed s > 1 was necessary. It is not: p**n / Theta(n) still
+    overtakes 2**n, just without an n-independent threshold. This pins the depth from
+    which the exclusion holds, so the weaker claim cannot drift back to the false one.
+    """
+    from padic_kernel.metrics import regular_tree_dimension_bound
+
+    assert regular_tree_dimension_bound(geometric_profile(first_n, p, 1.0), p, first_n) > 2**first_n
+    for n in range(first_n, first_n + 8):
+        assert regular_tree_dimension_bound(geometric_profile(n, p, 1.0), p, n) > 2**n
+
+
+def test_theorem_c_profile_is_determined_only_on_populated_levels():
+    """Injectivity of f -> K fails when a level carries no pair of leaves.
+
+    A root with two unary-padded children of depth 2 has no pair meeting at depth 1, so
+    profiles differing only there induce the same kernel. Theorem C's converse is
+    therefore to be read modulo the populated levels.
+    """
+    from padic_kernel.profiles import Profile
+    from padic_kernel.tree import from_parent_map, pad_to_uniform_depth
+
+    parent_of = {"r": None, "a": "r", "b": "r", "a1": "a", "a2": "a"}
+    tree, tip = pad_to_uniform_depth(from_parent_map(parent_of))
+    idx = {name: i for i, name in enumerate(from_parent_map(parent_of).labels)}
+    leaves = tip[np.array([idx["a1"], idx["b"]])]
+    lca = lca_depth_matrix(ancestor_matrix(tree, leaves))
+    assert 1 not in set(np.unique(lca).tolist()), "level 1 must be unpopulated here"
+
+    f = Profile((0.25, 0.5, 1.0))
+    g = Profile((0.25, 0.75, 1.0))
+    kf = fidelity_gram(EncodingFactory("path_state", profile=f).states(tree, leaves))
+    kg = fidelity_gram(EncodingFactory("path_state", profile=g).states(tree, leaves))
+    assert np.allclose(kf, kg, atol=1e-12), "distinct profiles must give the same kernel"
+
+
+def test_theorem_a_product_map_can_realise_a_monotone_profile_at_depth_one():
+    """At n = 1 a product map is the whole encoding, so the no-go needs n >= 2.
+
+    Three Bloch states at pairwise angle ~110 degrees give f = (0.33, 1), strictly
+    monotone and exactly ultrametric, on one qubit. The abstract and Theorem A must
+    carry the n >= 2 hypothesis.
+    """
+    tree = build_padic_tree(3, 1)
+    lca = lca_depth_matrix(ancestor_matrix(tree, tree.leaves))
+    target = 3.0**-1.01
+    theta = np.arccos(2 * target - 1)
+    angles = np.array([0.0, 2 * np.pi / 3, 4 * np.pi / 3])
+    # Three Bloch vectors at polar angle theta/... place them so pairwise fidelity is target.
+    half = theta / 2
+    psi = np.stack(
+        [np.array([np.cos(half), np.sin(half) * np.exp(1j * a)]) for a in angles]
+    )
+    k = fidelity_gram(psi)
+    off = k[~np.eye(3, dtype=bool)]
+    assert np.ptp(off) < 1e-12, "the three states must be pairwise equidistant"
+    assert level_constancy_of(k, lca) < 1e-12
+    assert off[0] < 1.0, "and the profile must be non-degenerate"
+
+
+def level_constancy_of(kernel, lca):
+    from padic_kernel.metrics import level_constancy
+
+    return level_constancy(kernel, lca)

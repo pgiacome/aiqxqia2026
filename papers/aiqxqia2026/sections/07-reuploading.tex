@@ -35,8 +35,9 @@ We measure two quantities: the \emph{ultrametric distortion}
   \mathcal{D} = \max_{x,y,z} \max\bigl(0,\; d(x,z) - \max(d(x,y), d(y,z))\bigr),
   \qquad d = 1 - K ,
 \end{equation}
-which vanishes exactly when the induced distance is an ultrametric, and the
-kernel-target alignment as a standard proxy for usable expressivity.
+which vanishes exactly when $d$ satisfies the strong triangle inequality --- not
+quite the same as being an ultrametric, as \Cref{rem:depolarising-caveat} illustrates
+--- and the kernel-target alignment as a standard proxy for usable expressivity.
 \Cref{sec:experiments} maps the resulting Pareto front.
 
 \subsection{Depolarising noise preserves the strong triangle inequality}
@@ -47,8 +48,9 @@ the contrast degrades.
 
 \begin{proposition}[Depolarising noise preserves the strong triangle inequality]
   \label{prop:depolarising}
-  Let $K$ be ultrametric with non-decreasing profile $f$, realised on a Hilbert space of
-  dimension $D_{\mathcal{H}} = 2^{\lceil \log_2 \abs{V} \rceil}$, and let
+  Let $K$ be ultrametric with non-decreasing profile $f$, realised on a register of
+  Hilbert-space dimension $D_{\mathcal{H}}$ (for the path state in a dense layout,
+  $D_{\mathcal{H}} = 2^{\lceil \log_2 \abs{V} \rceil}$), and let
   $K_r = (1-r) K + r / D_{\mathcal{H}}$ be the kernel estimated under global
   depolarising noise of rate $r \in [0,1]$. Then $K_r$ is level-constant with
   non-decreasing profile $(1-r) f + r / D_{\mathcal{H}}$, and $d_r = 1 - K_r$ satisfies
@@ -78,12 +80,14 @@ the contrast degrades.
   \Cref{def:ultrametric-kernel}, and correspondingly $d_r(x,x) > 0$: strictly, $d_r$ is
   a semi-metric rather than a metric. What the proposition establishes is that the two
   properties we actually measure --- level constancy and the strong triangle inequality
-  --- both survive. Rescaling $K_r$ by its diagonal restores $f(n) = 1$ and changes
-  nothing else, since the rescaling is by a constant.
+  --- both survive. Rescaling $K_r$ by its diagonal restores $f(n) = 1$ and preserves
+  both, being a positive constant factor. It does not preserve resolution depth, which
+  is thresholded at a fixed $\tau$ and so is not scale-free: rescaling inflates every
+  consecutive gap. Resolution figures below are reported on $K_r$ unrescaled.
 \end{remark}
 
 What depolarising noise destroys is not geometry but contrast. The profile is
-compressed towards the constant $1/D$, so consecutive levels become harder to tell
+compressed towards the constant $1/D_{\mathcal{H}}$, so consecutive levels become harder to tell
 apart and the resolution depth of \Cref{def:diagnostics} falls, even though level
 constancy stays exactly zero. \Cref{sec:experiments} measures where that collapse
 happens.
