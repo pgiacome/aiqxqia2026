@@ -3618,3 +3618,13 @@ three generated tables byte-identical.
 **Two blockers remain, both author-supplied**, and `experiments.preflight` fails until
 they clear: the author block (`TODO-AUTHOR`) and three `\todo` markers (author block,
 repository URL, generative-AI disclosure).
+
+**7 August 2026 — length settled at 16 body pages.** The venue sets no maximum for full
+papers (verified against the live Instructions for Authors page: "at least 10 pages,
+excluding references"), so the trim was discretionary. Compressed 18 to 16 without
+dropping a claim or a result; the author accepted 16 and declined further cutting. The
+remaining gap to the spec's original 12.75-page target is accounted for by roughly two
+pages of post-audit correctness material that should not be cut.
+
+**Plan complete.** All 19 tasks executed. The only outstanding items are author-supplied
+and enforced by `uv run python -m experiments.preflight`.
