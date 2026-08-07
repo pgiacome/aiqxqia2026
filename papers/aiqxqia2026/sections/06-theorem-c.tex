@@ -1,0 +1,206 @@
+%% 06-theorem-c
+\section{Exact Realisation by Path States}
+\label{sec:theorem-c}
+
+The two obstructions leave a gap: strictly monotone ultrametric kernels need many
+dimensions and cannot be factorised across digits. The construction in this section
+fills the gap exactly, and turns out to characterise the whole family.
+
+\begin{theorem}[Path states]
+  \label{thm:path-states}
+  Let $T$ be a finite rooted tree on node set $V$ with all leaves at depth $n$. For
+  every strictly increasing $f : \{0, \dots, n\} \to (0, 1]$ with $f(n) = 1$, set
+  \begin{equation}
+    \label{eq:amplitudes}
+    a_i^{2} = \sqrt{f(i)} - \sqrt{f(i-1)} \quad (0 \le i \le n), \qquad
+    \sqrt{f(-1)} := 0,
+  \end{equation}
+  and define the \emph{path state}
+  \begin{equation}
+    \label{eq:path-state}
+    \pathstate{x} \;=\; \sum_{i=0}^{n} a_i \ket{\anc_i(x)} \;\in\; \C^{V} .
+  \end{equation}
+  Then $\pathstate{x}$ is a unit vector and, for all leaves $x, y$,
+  \begin{equation}
+    \label{eq:exactness}
+    \fid{\pathstate{x}}{\pathstate{y}} = f\bigl(\lcadepth(x,y)\bigr) \qquad
+    \text{exactly.}
+  \end{equation}
+  Conversely, every kernel that is ultrametric with a strictly monotone profile arises
+  this way: among realisations whose pairwise overlaps are real and non-negative,
+  $\Phi_f$ is unique up to a global isometry. Dropping that restriction, uniqueness
+  fails even up to isometry and per-point phases (\Cref{rem:uniqueness}).
+\end{theorem}
+
+\begin{proof}
+  Strict monotonicity makes each $a_i^{2}$ in \cref{eq:amplitudes} positive, so the
+  $a_i$ are well defined and real. The sum telescopes,
+  $\sum_{i=0}^{n} a_i^{2} = \sqrt{f(n)} = 1$, so $\pathstate{x}$ is a unit vector.
+
+  For the overlap, the key structural fact is that two leaves share precisely their
+  ancestors down to the depth at which they meet, and no deeper: $\anc_i(x) = \anc_i(y)$
+  if and only if $i \le \lcadepth(x,y)$. The basis vectors $\ket{u}$ for $u \in V$ being
+  orthonormal,
+  \begin{equation}
+    \label{eq:overlap}
+    \braket{\pathstate{x}}{\pathstate{y}}
+    = \sum_{i=0}^{n} a_i^{2} \,\mathbf{1}\bigl[\anc_i(x) = \anc_i(y)\bigr]
+    = \sum_{i \le \lcadepth(x,y)} a_i^{2}
+    = \sqrt{f\bigl(\lcadepth(x,y)\bigr)} ,
+  \end{equation}
+  again by telescoping. Squaring the modulus gives \cref{eq:exactness}.
+
+  Two remarks on \cref{eq:overlap}. The cross terms vanish because $\anc_i(x)$ and
+  $\anc_j(y)$ sit at different depths when $i \ne j$, so they are distinct nodes and
+  hence orthogonal basis vectors. And $a_i^{2} = \sqrt{f(i)} - \sqrt{f(i-1)}$ is forced
+  by \cref{eq:overlap} read at successive levels, so $f$ determines the amplitudes.
+
+  For the converse, let $\Psi$ be a realisation whose Gram matrix $G^{\Psi}$ has real
+  non-negative entries. Then $G^{\Psi}_{xy} = \sqrt{f(\lcadepth(x,y))}$ exactly, which
+  by \cref{eq:overlap} is the Gram matrix of $\Phi_f$. Two families of vectors with
+  equal Gram matrices are related by an isometry of their spans, which is the standard
+  argument. No phase freedom remains inside this class: since $f > 0$ every overlap is
+  strictly positive, and a non-constant per-point phase would move $G^{\Psi}$ out of it.
+\end{proof}
+
+\begin{remark}[How far uniqueness actually goes]
+  \label{rem:uniqueness}
+  Two weakenings are needed, and the second is not cosmetic.
+
+  First, the converse cannot say ``unique up to relabelling of $V$''. Rotating every
+  $\pathstate{x}$ by a fixed unitary, or multiplying each by its own phase, leaves the
+  fidelity kernel unchanged while destroying the reading of the basis as tree nodes
+  (\testname{test_theorem_c_uniqueness_up_to_isometry_and_phase}). The
+  node-labelled form \cref{eq:path-state} is the canonical representative of its
+  isometry class, not the only member.
+
+  Second, and less obviously, the positivity hypothesis cannot be dropped. A fidelity
+  kernel fixes only the \emph{moduli} $\abs{G_{xy}}$, and these do not determine $G$ up
+  to phases: the Bargmann invariants $G_{xy}G_{yz}G_{zx}$ are invariant under
+  $\Psi(x) \mapsto e^{i\vartheta_x} U \Psi(x)$ yet are not functions of the moduli.
+  Concretely, take $n = 1$, $p = 3$, $f(0) = t = 1/4$ and
+  \begin{equation*}
+    G^{\Psi} =
+    \begin{pmatrix}
+      1 & \sqrt{t} & i\sqrt{t} \\
+      \sqrt{t} & 1 & \sqrt{t} \\
+      -i\sqrt{t} & \sqrt{t} & 1
+    \end{pmatrix},
+  \end{equation*}
+  which is positive semi-definite with spectrum $\{0.134, 1, 1.866\}$ and realises the
+  same kernel as $\Phi_f$. Its Bargmann invariant is $-\tfrac{1}{8}i$ against
+  $+\tfrac{1}{8}$ for the path state, so no isometry and no choice of phases carries one
+  to the other. So $f \mapsto \Phi_f$ is a bijection onto the strictly monotone
+  ultrametric kernels only after two restrictions: to realisations with non-negative
+  overlaps, and --- since profiles agreeing on the populated levels $V(K)$ induce the
+  same kernel (\Cref{def:diagnostics}) --- modulo $V(K)$. On a tree with an unpopulated
+  level, injectivity genuinely fails: a root with two unary-padded children of depth $2$
+  admits both $f = (\tfrac14, \tfrac12, 1)$ and $g = (\tfrac14, \tfrac34, 1)$ for the
+  same kernel, because no pair of leaves meets at depth $1$
+  (\testname{test_theorem_c_converse_needs_non_negative_overlaps},
+  \testname{test_theorem_c_profile_is_determined_only_on_populated_levels}).
+\end{remark}
+
+\begin{remark}[Positive semi-definiteness for free]
+  \label{rem:psd}
+  Let $A$ be the leaf-by-node incidence matrix with $A_{xu} = a_{\mathrm{depth}(u)}$ if
+  $u$ is an ancestor of $x$ and $0$ otherwise. Then \cref{eq:overlap} says
+  $\sqrt{K} = A A^{\!\top}$ entrywise, so $K = (A A^{\!\top})^{\circ 2}$ is a Schur
+  square of a positive semi-definite matrix and hence positive semi-definite. This
+  re-derives, in one line, the classical fact that monotone ultrametric kernels are
+  positive semi-definite.
+\end{remark}
+
+\subsection{Resources}
+\label{subsec:resources}
+
+The path state lives in $\C^{V}$, so a dense layout needs
+$\lceil \log_2 \abs{V} \rceil$ qubits, and it has only $n+1$ non-zero amplitudes. The
+gate count below is for a \emph{level-indexed} layout, which splits the register into a
+depth counter and a within-level index and therefore costs
+$\lceil \log_2 (n+1) \rceil + \lceil \log_2 W \rceil$ qubits for maximum level width
+$W$ --- slightly more than the dense layout, by about $\log_2 n$ on $\Zpn$. In that
+layout, preparation is a cascade of $n$
+controlled rotations, one per level, each splitting the remaining amplitude between
+``stop here'' and ``descend'', followed at each level by writing the within-level index
+of $\anc_i(x)$ conditioned on the depth register. Both parts together give
+$O(n \log \abs{V})$ elementary gates, which is the figure we quote; the $n$ rotations
+alone are not the whole cost.
+
+\begin{table}
+  \centering
+  \caption{Resources for the path-state encoding, on the full WordNet hierarchy rather
+    than the depth-$\EOneHeight$ truncation \Cref{sec:experiments} applies to the
+    baselines. Qubits is for the dense $\C^{V}$ layout; the gate count is for the
+    level-indexed layout of \Cref{subsec:resources}, which costs about $\log_2 n$ more
+    qubits. The two columns therefore describe two circuits, not one.}
+  \label{tab:resources}
+  \begin{tabular}{lrrrr}
+    \toprule
+    & nodes $\abs{V}$ & qubits & non-zero amplitudes & preparation gates \\
+    \midrule
+    general tree & $\abs{V}$ & $\lceil \log_2 \abs{V} \rceil$ & $n+1$
+      & $O(n \log \abs{V})$ \\
+    $\Zpn$ & $\frac{p^{n+1}-1}{p-1}$ & $\approx n \log_2 p$ & $n+1$ & $O(n^{2}\log p)$ \\
+    WordNet, padded & $\WNPaddedNodes$ & $\WNQubitsPadded$ & $\WNAmplitudes$ & --- \\
+    WordNet, collapsed & $\WNCollapsedNodes$ & $\WNQubitsCollapsed$ & $\WNAmplitudes$
+      & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\Cref{tab:resources} collects the counts, and the WordNet rows need a word of care that
+an earlier draft of this paper did not take. The reduced noun hierarchy has
+$\WNNodes$ nodes, but \cref{eq:path-state} lives on a tree whose leaves all sit at
+depth $n$, and padding WordNet's shallow leaves out to depth $\WNHeight$ inflates the
+node count to $\WNPaddedNodes$ --- an order of magnitude, costing
+$\WNQubitsPadded$ qubits rather than the $\lceil \log_2 \WNNodes \rceil = 17$ one
+might expect from the unpadded figure.
+
+Most of that is recoverable. A padded leaf's chain is unary and private to it, so the
+$n - d$ basis vectors below its original depth $d$ are shared with no other leaf and
+contribute nothing to any off-diagonal overlap. Replacing the whole chain by a single
+node carrying their summed amplitude $\sqrt{1 - \sqrt{f(d)}}$ leaves
+\cref{eq:overlap} untouched and every kernel entry unchanged
+(\testname{test_theorem_c_padding_collapse_preserves_the_kernel}). One node per shallow
+leaf brings WordNet to $\WNCollapsedNodes$ nodes and $\WNQubitsCollapsed$ qubits.
+
+Comparing with \Cref{cor:no-n-qubit}, on $\Zpn$ the construction uses
+$\log_2 \abs{V} = n \log_2 p + \log_2 \frac{p}{p-1} + o(1)$ qubits while the bound
+demands at least $n \log_2 p - \log_2 S(p,s)$. For $s > 1$, where $S(p,s)$ is
+independent of $n$, the two differ by an additive constant and the encoding is optimal
+up to $O(1)$ qubits. We resist the stronger phrasing twice over: it is not exactly
+optimal, and for $s \le 1$ the lower bound weakens (\Cref{rem:s-greater-one}) so the
+gap grows with $n$.
+
+\subsection{The $p$-adic specialisation}
+\label{subsec:padic-specialisation}
+
+On the regular $p$-ary tree $\lcadepth(x,y) = \min(\vp(x-y), n)$, so with
+$\abs{x-y}_p = p^{-\lcadepth}$ for $x \ne y$ the geometric profile is
+$f(\lcadepth) = p^{-(n-\lcadepth)s} = ( p^{-n} / \abs{x-y}_p )^{s}$: a decreasing power
+of the $p$-adic distance, with $f(n) = 1$ supplying the value at $x = y$. The path state is then a level-weighted superposition over the
+root-to-leaf path in the $p$-adic tree, with amplitude concentrated near the leaf for
+large $s$ and spread towards the root for small $s$. This is the same object that
+appears as the state space of continuous-time quantum walks on $p$-adic trees, where
+the vertices are sub-balls of a $p$-adic ball
+\citep{ZunigaGalindo2024QuantumWalks,ZunigaGalindo2025TwoAdic}, and it connects the
+encoding to the $p$-adic quantum formalism of \citet{AnielloEtAl2023PadicQubit}.
+
+\subsection{Arbitrary rooted trees}
+\label{subsec:general-trees}
+
+Nothing in the proof uses regularity. The only structural input is \cref{eq:overlap},
+which needs just that ancestors nest, true in any rooted tree. Branching factors may
+vary between nodes and levels, and shallow leaves are handled by the unary padding of
+\Cref{sec:problem}. The construction therefore applies verbatim to WordNet, whose
+branching factor ranges from $1$ to $402$, and $\Zpn$ is the homogeneous specialisation
+rather than the setting
+(\testname{test_theorem_c_generalises_to_a_non_homogeneous_tree}).
+
+\paragraph{Numerical verification.}
+Across $(p,n) \in \{(2,3), (3,2), (2,4), (5,2)\}$ and both geometric and linear
+profiles, the residual $\max_{x,y} \abs{K - f(\lcadepth)}$ is at most
+$\EThreeWorstResidual$, and the induced distance has zero strong-triangle violations
+(\testname{test_theorem_c_path_states_realise_the_profile_exactly},
+\testname{test_theorem_c_induced_distance_is_exactly_ultrametric}).

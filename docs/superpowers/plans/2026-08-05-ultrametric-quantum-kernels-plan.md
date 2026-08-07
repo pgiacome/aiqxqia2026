@@ -2817,7 +2817,7 @@ def main() -> None:
         rates_seen, residuals = [], []
         for rep in range(REPEATS if shots is not None else 1):
             rng = np.random.default_rng(cfg.seed + rep)
-            k = depolarise(exact, rate)
+            k = depolarise(exact, rate, dim=ds.tree.num_nodes)
             if shots is not None:
                 k = sample_kernel(k, shots=shots, rng=rng)
             rates_seen.append(violation_rate(1.0 - k))
@@ -3379,3 +3379,252 @@ git commit -m "docs(paper): style pass, self-review fixes, submission checklist"
 | 8 Aug | 14, 16, 17: numbers extraction, references, mathematical core |
 | 9 Aug | 18–19: empirical sections, self-review, compile, **submit** |
 | 10 Aug | Buffer only |
+
+---
+
+## Execution log
+
+**5 August 2026 — Tasks 1–7 complete** on branch `feature/ultrametric-quantum-kernels`.
+98 tests pass; `ruff` and `mypy` clean. Four deviations from the plan as written, all
+deliberate:
+
+1. **`depolarise` gained a required `dim` argument.** The plan modelled depolarising as
+   `K -> (1 - rate) K + rate/2`, which pulls kernel entries *up* towards 1/2 and made
+   the plan's own test assertion false. The compute-uncompute estimator reads the
+   all-zeros outcome probability, which the maximally mixed state gives as `1/dim`, so
+   the correct model is `K -> (1 - rate) K + rate/dim`. Task 13's call site is updated
+   above.
+2. **`reupload.py` was built during Task 4** rather than Task 12, because the Task 4
+   test file already exercises it. Task 12 now only needs `e4_entangling.py`.
+3. **`digit_matrix` is vectorised** via a stable argsort on the parent array instead of
+   the plan's per-node Python loop, which would have been ~80k iterations on WordNet.
+4. **Two Theorem A tests were strengthened.** The plan's
+   `test_theorem_a_conclusion_forces_at_most_three_kernel_values` built an object that
+   was not actually ultrametric, so it tested the wrong thing. It is replaced by
+   `test_theorem_a_ultrametric_product_map_resolves_only_one_level`, which builds a
+   genuinely ultrametric product map from interpolated simplex factors and checks the
+   predicted two-valued kernel, plus
+   `test_theorem_a_a_nontrivial_deep_factor_destroys_ultrametricity`, which exercises
+   the proof's multiplicativity step directly.
+
+Also added: `test_theorem_b_does_not_subsume_theorem_a_at_radix_two`, which pins the
+complementarity claim so it cannot quietly rot into an overclaim.
+
+**Recorded for the paper** (`notes/theorem-residuals.json`): path-state profile
+residuals are `2.2e-16` at `(p,n) = (2,3)`, `1.1e-16` at `(2,5)`, `1.4e-17` at `(3,3)`,
+`2.8e-17` at `(5,2)` — machine precision in every case, with zero strong-triangle
+violations.
+
+**6 August 2026 — Tasks 8–9 complete.** 117 tests pass; `ruff` and `mypy` clean. E1 is
+green on synthetic (`p = 2, 3`), WordNet, GO and NCBI.
+
+Three library changes were forced by the real hierarchies, which are far larger and
+deeper than the plan assumed (WordNet: 74,374 nodes, height 19, max branching 402):
+
+1. **`tree.restrict_to_leaves`** cuts to the sampled leaves' ancestor closure. Padding
+   the full WordNet tree would have made the path-state array 2.8 GB when only the
+   sampled leaves' paths can carry amplitude.
+2. **`tree.truncate_at_depth` plus `encoding.MAX_QUBITS`.** Angle and ZZ need
+   `2**height` amplitudes per point — `2**19` on raw WordNet. Experiments truncate at
+   depth 8; the guard makes an over-deep tree fail loudly instead of exhausting memory.
+3. **`BasisEncoding` emits the compact one-hot form.** Its nominal width is
+   `radix ** height` = `402**19`, unrepresentable; the occupied-subspace form has an
+   identical Gram, and `nominal_dim()` reports the true width for the resource table.
+
+`pad_to_uniform_depth` now also returns a `tip` remap — padding turns a shallow leaf
+into an internal node, so held leaf indices go stale. A test caught this.
+
+**A finding that changes how E1 is reported.** Violation count does not separate the
+encodings: basis encoding has **zero** violations, because `K = I` is the discrete
+metric, which is ultrametric. It is also useless — it resolves nothing. This is the
+`v* = n` corner of Theorem A, not a counterexample, but it means the paper cannot lead
+with "path states have zero violations and the baselines do not". E1 now reports two
+quantities, and only the path state wins both:
+
+| encoding | violations | level constancy | resolution depth |
+|---|---|---|---|
+| path state | 0 | `4.4e-16` | full |
+| basis | 0 | 0 | **2** |
+| angle | ~6.5e5 | 0.95 | full |
+| ZZ | ~6.7e5 | 0.72 | full |
+| random product | ~6.8e5 | 0.98 | full |
+
+§8 of the paper must present the basis encoding this way rather than omitting it.
+
+**Two reporting artifacts fixed before they could be mistaken for findings.** The
+geometric profile base is now a free parameter defaulting to 2 rather than the
+branching factor — at radix 38 the profile underflowed to `4e-13` and understated
+path-state resolution as 6/9. And resolution depth is compared against the LCA levels
+the sample actually populates: GO's 8 is a ceiling shared by every encoding, not a
+shortfall.
+
+**Dataset shapes for the paper** (256 leaves, truncated at depth 8): WordNet 74,374
+source nodes / height 19 → 1,028 nodes, radix 11, 11 classes, 11 qubits; GO
+molecular-function 10,041 / 12 → 1,235 nodes, radix 16, 26 classes, 11 qubits; NCBI
+Mammalia 14,722 / 14 → 633 nodes, radix 38, 4 classes, 10 qubits.
+
+**6 August 2026 — Tasks 10–13 complete.** 130 tests pass; `ruff` and `mypy` clean. All
+five experiments run end to end and emit figures.
+
+**A new result, found while building E5: Proposition D.** Global depolarising noise
+sends `K -> (1 - r)K + r/D`, hence `d -> (1 - r)d + r(1 - 1/D)` — an increasing affine
+map. Affine maps preserve order and commute with `max`, so the strong triangle
+inequality survives **exactly**, at every rate. Verified numerically to `r = 0.99`. What
+depolarising destroys is contrast, not geometry: the profile flattens and resolution
+depth falls (6 → 4 at `r = 0.99`). This belongs in §7 of the paper as a proposition
+with a two-line proof, and it materially improves the noise story: the construction's
+ultrametricity is immune to the dominant hardware error channel.
+
+**Three measurement corrections, each caught because a result looked wrong.**
+
+1. **E5 must report violation magnitude, not count.** In an ultrametric every triangle
+   is isoceles with its two longest sides equal, so a large fraction of triples — 66.7%
+   on the `p=2, n=5` tree — meets the inequality with equality. Any perturbation flips
+   about half of them, so the count *rises* toward ~0.30 as shots increase, which is
+   the opposite of the expected behaviour and pure artifact. The magnitude behaves
+   properly, decaying as `O(1/sqrt(shots))`: `0.134, 0.049, 0.014, 0.0049, 0.0017` for
+   `1e2 … 1e6` shots, a factor of `sqrt(10)` per decade. **Shot budget: 1e5 shots per
+   kernel entry** for worst-case excess below 0.01.
+2. **E3's crossing figure must use the closed-form full-tree bound.** Evaluating
+   Theorem B on a 128-leaf subsample stays a valid bound but is capped at
+   `log2(128) = 7` qubits, so the curve saturated instead of crossing. Added
+   `metrics.regular_tree_dimension_bound`, which computes `p**n / S` without
+   materialising the tree. The crossing is now unambiguous: at `p = 2` the bound is
+   below `n` at every depth (1.54, 2.48, 3.45, 4.43, 5.42 for `n = 2..6`); at `p = 3` it
+   is above at every depth (2.80, 4.35, 5.93, 7.51, 9.10); at `p = 5` far above.
+3. **E2 reports undefined Spearman rho as `None` with a note.** A delta kernel gives
+   every distinct pair the same distance, so no rank correlation exists; NaN would read
+   as a failed computation.
+
+Also pinned: **Theorem B genuinely needs `s > 1`.** At `s = 1` every term of the row sum
+is 1, so `S = 1 + n(p-1)/p` grows with `n` and the bound degrades to `p**n / Theta(n)`.
+The hypothesis is load-bearing, not decoration.
+
+**E2 results, to be reported exactly as they came out.** On WordNet the path state
+leads on geometric fidelity by a wide margin and *loses* on leaf accuracy:
+
+| encoding | leaf acc. | root acc. | Spearman rho |
+|---|---|---|---|
+| path state | 0.792 | 0.937 | **1.000** |
+| random product | **0.839** | 1.000 | 0.368 |
+| angle | 0.675 | 1.000 | 0.175 |
+| ZZ | 0.478 | 0.824 | 0.098 |
+| basis | 0.212 | 0.667 | undefined |
+
+GO is the same shape (path state 0.601 vs random product 0.750). This is exactly the
+case §8 of the spec pre-committed to reporting plainly: accuracy and geometric fidelity
+are different objectives, and the paper's claim is the latter. The path state's
+`rho = 1.000` is by construction, not a fitted result, and must be described that way.
+
+**E4.** Distortion grows continuously from zero, so the exact construction is the
+endpoint of a tunable family rather than an isolated point. The alignment available is
+small: on WordNet the best configuration reaches 0.4258 against the exact point's
+0.4212, a gain of 0.005 for distortion 0.046. §7 should say plainly that the trade-off
+exists but buys little on these datasets.
+
+**6 August 2026 — Tasks 14–16 complete.** 130 tests pass; `ruff` and `mypy` clean. The
+manuscript compiles to 3 pages of scaffold with all 16 references typeset and zero
+BibTeX errors.
+
+**Task 14.** `collect_numbers.py` emits 48 macros from the newest run of each
+experiment. Every one uses `\providecommand` + `\renewcommand`, so the file is
+idempotent and a dropped macro degrades to empty rather than breaking the build.
+
+**Task 15 — toolchain findings worth keeping.** `ceurart` needs `ccicons` and
+`elsarticle-num-names`, neither in TeX Live 2023 here, and `tlmgr` refuses to install
+(local 2023 older than the remote 2026 repository). Both were fetched from CTAN into
+`$HOME/texmf`; the Makefile exports `TEXMFHOME` so the build does not depend on the
+ambient environment. `fontawesome5` is also missing, but the class guards it with a
+file-exists test, so it degrades to no ORCID icon. Two further build facts:
+
+- **`lmodern` is required.** Without `cm-super`, T1 Computer Modern falls back to
+  bitmaps and microtype's font expansion aborts the run outright.
+- **Do not set `\bibliographystyle` in `main.tex`.** The class already sets
+  `elsarticle-num-names`; a duplicate makes BibTeX abort with *"Illegal, another
+  \bibstyle command"* — reported only in the `.blg`, while a stale `.bbl` survives and
+  the build looks fine. This cost a debugging cycle and would have shipped a paper with
+  no bibliography.
+
+Layout choices: one column (the `ceurart` default and CEUR house style) and **no**
+`singleblind` option, since that anonymises and the workshop wants names visible.
+
+**Task 16 — 16 references, all machine-verified.** `verify_refs.py` resolves every
+arXiv id and DOI *and* compares the recorded title against the real record, because an
+identifier that resolves to a different paper looks fine while being wrong. Non-zero
+exit on failure, so it gates submission.
+
+The gate paid for itself on first run. Of three failures, one was real: I had written
+the title for arXiv:2401.04642 from memory rather than from the record. It is *Neural
+quantum kernels: training quantum kernels with quantum neural networks*. The other two
+were a bug in the comparison — LaTeX accent escapes against Unicode — now normalised
+through NFKD.
+
+**Correction to the design spec §11.** The Aniello et al. p-adic qubit paper is in
+**Entropy** 25(1):86, DOI 10.3390/e25010086 — not *Symmetry*.
+
+**v-PuNNs, confirmed and consequential for §8.** arXiv:2508.01010, sole author Gnankan
+Landry Regis N'guessan, still a preprint (revised January 2026). It reports **99.96%
+leaf accuracy on WordNet**, 96.9%/100% on GO, and Spearman |rho| = 0.96 on NCBI. Our
+path state gets 0.792 leaf accuracy on WordNet. The gap is large and must be stated
+plainly, alongside the point that v-PuNNs is a trained deep model with a bespoke
+optimiser while ours is a fixed encoding with a closed form and rho = 1.000 by
+construction. This is exactly the scenario §8 of the spec pre-committed to.
+
+Items the literature search could not verify were **dropped, not cited**: a Murtagh
+2009 ultrametric-clustering paper (bibliographic detail unconfirmed) and a KDD '25
+acceptance claim for arXiv:2507.17787, which is cited as a preprint instead.
+
+**7 August 2026 — Tasks 17–19 complete.** The paper is drafted, corrected and gated.
+20 pages, 18 of body against the CEUR floor of 10. 133 tests pass; `ruff` and `mypy`
+clean; all 16 references verified; experiments reproduce bit-identically.
+
+**The proof audit was the most valuable step in the whole plan.** An adversarial read of
+Sections 3--7 returned three *blocking* findings, all confirmed numerically before being
+acted on, none a false alarm:
+
+1. **Theorem A's three-value conclusion was false for block-product maps.** Definition
+   3.7 admits the single-block partition, under which the path state is itself a
+   block-product map realising `n+1` distinct values. The proof only ever constrained
+   blocks strictly after `B*`. Restated as a resolution bound of `|B*| + 2`, collapsing
+   to three values only for genuine product maps, with a new remark recording that the
+   bound is tight.
+2. **Theorem C's converse was false.** A fidelity kernel fixes only overlap *moduli*,
+   and those do not determine the Gram matrix up to phases: Bargmann invariants are
+   gauge invariant but are not functions of the moduli. There is now an explicit
+   counterexample in the paper -- a PSD Gram realising the same kernel with Bargmann
+   invariant `-i/8` against the path state's `+1/8` -- and the converse requires
+   non-negative overlaps.
+3. **Corollary 5.2's "for every `p >= 3`" was false** for `s` near 1 and small `n`. At
+   `p=3, s=1.01, n=1` the bound gives 0.85 qubits, and a single qubit really does
+   realise that kernel. Now quantified by an explicit threshold `n_0(p,s)`, with the
+   scope narrowed from "a strictly monotone ultrametric kernel" to "the geometric
+   profile with parameter `s`".
+
+Six further gaps were fixed: an off-by-one in Theorem A (`v >= max B*`, without which
+the `n = 2` product case does not close), a missing hypothesis in Lemma 3.3, the false
+claim that level constancy alone yields an ultrametric, an undefined `B*` at `v* = n`,
+an inverted `p`-adic identity, and Proposition 7.1 overstating what it proves (`K_r`
+breaks the `f(n) = 1` normalisation, so the honest statement is about the strong
+triangle inequality and level constancy). Two new tests pin the counterexamples.
+
+**Style pass.** No AI-vocabulary hits and no participial "-ing" analyses; em dashes were
+running at roughly one per 230 words and were cut by about a third. One genuine
+factual error surfaced while reading: a sentence in Section 9 whose antecedent inverted
+which method is more accurate.
+
+**Reproduction.** Rerunning all five experiments from scratch left `numbers.tex` and all
+three generated tables byte-identical.
+
+**Two blockers remain, both author-supplied**, and `experiments.preflight` fails until
+they clear: the author block (`TODO-AUTHOR`) and three `\todo` markers (author block,
+repository URL, generative-AI disclosure).
+
+**7 August 2026 — length settled at 16 body pages.** The venue sets no maximum for full
+papers (verified against the live Instructions for Authors page: "at least 10 pages,
+excluding references"), so the trim was discretionary. Compressed 18 to 16 without
+dropping a claim or a result; the author accepted 16 and declined further cutting. The
+remaining gap to the spec's original 12.75-page target is accounted for by roughly two
+pages of post-audit correctness material that should not be cut.
+
+**Plan complete.** All 19 tasks executed. The only outstanding items are author-supplied
+and enforced by `uv run python -m experiments.preflight`.

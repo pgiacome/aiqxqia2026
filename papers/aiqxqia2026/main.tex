@@ -1,0 +1,138 @@
+%% AIQxQIA 2026 -- CEUR-WS submission.
+%% Single-blind: author names ARE included, so the `singleblind' class option
+%% (which anonymises) is deliberately NOT passed. One column is the ceurart default
+%% and the CEUR house layout.
+\documentclass{ceurart}
+
+%% Latin Modern: scalable Type1, so microtype's font expansion works. Without it,
+%% T1 Computer Modern falls back to bitmaps here (no cm-super installed) and pdfTeX
+%% aborts with "auto expansion is only possible with scalable fonts".
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{trees}
+\usepackage{todonotes}
+\setuptodonotes{inline,color=yellow!40}
+%% cleveref must be loaded after hyperref, which ceurart already pulls in.
+\usepackage[capitalise]{cleveref}
+
+\input{numbers}
+
+%% ---------------------------------------------------------------- notation macros
+\newcommand{\Zp}{\mathbb{Z}_p}
+\newcommand{\Zpn}{\mathbb{Z}/p^{n}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Nat}{\mathbb{N}}
+\newcommand{\vp}{v_p}
+\newcommand{\lcadepth}{\lambda}
+\newcommand{\pathstate}[1]{\Phi_f(#1)}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\newcommand{\ket}[1]{\lvert #1 \rangle}
+\newcommand{\bra}[1]{\langle #1 \rvert}
+\newcommand{\braket}[2]{\langle #1 \mid #2 \rangle}
+\newcommand{\fid}[2]{\bigl\lvert\braket{#1}{#2}\bigr\rvert^{2}}
+\DeclareMathOperator{\anc}{anc}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\tr}{tr}
+
+%% Test names are long and unhyphenatable in \texttt, which overruns the text block.
+%% \nolinkurl (from hyperref, already loaded by ceurart) breaks at underscores.
+\newcommand{\testname}[1]{{\small\nolinkurl{#1}}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\begin{document}
+
+\copyrightyear{2026}
+\copyrightclause{Copyright for this paper by its author.
+  Use permitted under Creative Commons License Attribution 4.0
+  International (CC BY 4.0).}
+
+\conference{AIQxQIA 2026: International Workshop on AI for Quantum and Quantum for AI,
+  2026}
+
+\title{Ultrametric Quantum Kernels: Exact $p$-adic Feature Maps for Hierarchical Data}
+
+\author[1]{TODO-AUTHOR}[
+  email=todo@example.org,
+]
+\address[1]{TODO-AFFILIATION}
+
+\todo{BLOCKER: author name, affiliation, ORCID and email are placeholders. The paper
+must not be uploaded while the string TODO-AUTHOR appears anywhere in the source.}
+
+\begin{abstract}
+  A quantum kernel compares data through the fidelity of an encoding, so the geometry
+  the model can express is fixed before any training happens. Hierarchical data
+  (taxonomies, ontologies, phylogenies) is not Euclidean but ultrametric, and we ask
+  which quantum feature maps induce an exactly ultrametric kernel. We give two
+  obstructions and a matching construction. First, once the tree has depth at least
+  two, no product feature map induces a \emph{strictly monotone} one, whatever its
+  local dimensions: multiplicativity across digits limits any such encoding to a
+  bounded resolution depth. Angle encoding is a corollary; computational-basis
+  encoding is excluded separately, and is instructive because it \emph{is}
+  ultrametric while resolving nothing.
+  Second, and independently, the Gram matrix of any exact realisation forces a
+  dimension of at least $L^{2} / \sum_{x,y} K(x,y)$ on $L$ points; on the $p$-adic tree
+  with a geometrically decaying profile of parameter $s > 1$ this exceeds $2^{n}$ for
+  every $p \ge 3$ and all sufficiently deep trees, so no $n$-qubit pure-state encoding
+  suffices there, including the entangling IQP and ZZ maps the first argument cannot
+  reach. Third, \emph{path states}, superpositions over a leaf's
+  root-to-leaf ancestor chain with amplitudes read off the target profile, realise
+  precisely the strictly monotone ultrametric kernels, on arbitrary rooted trees, and on
+  $\Zpn$ they do so within an additive constant of that lower bound. We further show
+  that global depolarising noise cannot break the strong triangle inequality at any
+  rate, since it acts on distances as a non-decreasing affine map, and we measure the shot budget that finite
+  sampling demands. Experiments on WordNet, Gene Ontology and the NCBI taxonomy confirm
+  exactness to machine precision and separate ultrametricity from usable resolution: a
+  basis encoding is ultrametric while resolving nothing. We claim no quantum speedup in
+  kernel evaluation, and say so throughout; the contribution is a constraint on
+  encoding design and an optimal-width encoding for models where no closed form
+  survives.
+\end{abstract}
+
+\begin{keywords}
+  quantum machine learning \sep
+  quantum kernels \sep
+  ultrametric spaces \sep
+  $p$-adic numbers \sep
+  hierarchical representation learning
+\end{keywords}
+
+\maketitle
+
+\input{sections/01-introduction}
+\input{sections/02-preliminaries}
+\input{sections/03-problem}
+\input{sections/04-theorem-a}
+\input{sections/05-theorem-b}
+\input{sections/06-theorem-c}
+\input{sections/07-reuploading}
+\input{sections/08-experiments}
+\input{sections/09-related-work}
+\input{sections/10-limitations}
+\input{sections/11-conclusion}
+
+\section*{Declaration on Generative AI}
+\todo{Complete per the CEUR-WS generative-AI disclosure policy in force at submission.}
+
+%% No \bibliographystyle here: ceurart.cls already sets elsarticle-num-names, and a
+%% second \bibstyle in the .aux makes BibTeX abort with "Illegal, another \bibstyle
+%% command" -- which it reports only in the .blg, while still leaving a stale .bbl.
+\bibliography{refs}
+
+\end{document}

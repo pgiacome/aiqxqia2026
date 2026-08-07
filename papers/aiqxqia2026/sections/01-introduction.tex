@@ -1,0 +1,96 @@
+%% 01-introduction
+\section{Introduction}
+\label{sec:introduction}
+
+A quantum kernel method embeds classical data through a feature map $\Phi$ and compares
+two points by the fidelity of their images,
+\begin{equation}
+  \label{eq:fidelity-kernel}
+  K(x, y) = \fid{\Phi(x)}{\Phi(y)} .
+\end{equation}
+Everything a downstream model can express about the similarity of $x$ and $y$ passes
+through this one number, and the number is fixed by the encoding alone: whatever
+geometry $\Phi$ imposes is imposed before any parameter is trained
+\citep{Schuld2021KernelMethods,HavlicekEtAl2019QuantumEnhanced}. The choice of encoding
+is therefore not a preprocessing detail. It is the model's inductive bias.
+
+Much of the data to which quantum machine learning is applied is hierarchical.
+Taxonomies, ontologies, phylogenies and type lattices are trees, and the natural
+distance on a tree is not Euclidean but \emph{ultrametric}: distances obey the strong
+triangle inequality
+\begin{equation}
+  \label{eq:strong-triangle}
+  d(x, z) \le \max\bigl(d(x, y),\, d(y, z)\bigr),
+\end{equation}
+which is strictly stronger than the ordinary triangle inequality. Equivalently, the
+points sit at the leaves of a tree and distance decreases with the depth of the lowest
+common ancestor. The canonical ultrametric space is the ring of $p$-adic integers
+$\Zp$, whose valuation $\vp(x - y)$ counts matching least-significant base-$p$ digits
+and so measures exactly that depth. This paper asks which quantum feature maps induce an
+exactly ultrametric kernel, and answers with two obstructions and a matching
+construction.
+
+\paragraph{Theorem A: product encodings cannot.}
+A map that factorises across digits induces a multiplicative kernel, and
+multiplicativity bounds how deep it can resolve the tree, whatever the local dimension:
+a product map is left with three kernel values, too few for a strictly monotone profile
+once $n \ge 2$. The argument extends to disjoint blocks of digits, where the bound is
+set by one block's size, so it constrains a class of encodings rather than a list.
+Angle encoding is a corollary; computational-basis encoding is excluded by a separate
+one-line argument, and is the instructive case that is ultrametric while resolving
+nothing.
+
+\paragraph{Theorem B: narrow encodings cannot either, whatever their structure.}
+The Gram matrix of any exact realisation is positive semi-definite with unit diagonal,
+which forces its rank to at least $L^{2} / \sum_{x,y} K(x,y)$ on $L$ points. On the regular
+$p$-ary tree with a geometric profile of parameter $s > 1$ this exceeds $2^{n}$ for
+every $p \ge 3$ once $n$ passes an explicit threshold: beyond it, no $n$-qubit
+pure-state encoding realises that kernel on $\Zpn$, entangling or not. This is what rules out the IQP and ZZ
+feature maps Theorem~A cannot reach.
+
+\paragraph{Theorem C: path states can, at essentially the optimal width on $\Zpn$.}
+Writing $\anc_i(x)$ for the depth-$i$ ancestor of a leaf $x$, the state
+$\Phi_f(x) = \sum_i a_i \ket{\anc_i(x)}$ realises \emph{every} strictly monotone
+ultrametric kernel exactly, with amplitudes read off the target profile. It needs
+$\lceil \log_2 \abs{V} \rceil$ qubits on a tree of $\abs{V}$ nodes, $n+1$ non-zero
+amplitudes and $O(n \log \abs{V})$ gates. On $\Zpn$ with $s > 1$ that matches
+Theorem~B to within an additive constant; on a general tree the two quantities are not
+directly comparable.
+
+We also record a fourth fact with a two-line proof: global depolarising noise acts on
+the induced distance as a non-decreasing affine map, so it cannot break the strong
+triangle inequality or level constancy at any error rate (\Cref{prop:depolarising}).
+What it destroys is contrast rather than geometry. Finite sampling behaves in the
+opposite way and breaks the inequality immediately, for a reason specific to ultrametric
+spaces that \Cref{sec:experiments} makes precise.
+
+\paragraph{What this paper does not claim.}
+The kernel of \Cref{thm:path-states} is $K(x,y) = f(\lcadepth(x,y))$, and a lowest
+common ancestor is computable classically in time linear in the depth of the tree.
+\textbf{There is no quantum speedup in kernel evaluation here, and we claim none.} We
+say so in the introduction rather than leaving a reader to discover it, because it
+determines how the rest should be read. The contribution is a no-go that constrains
+current encoding practice; a dimension bound that applies to arbitrary encodings and so
+survives future designs; and an explicit encoding, of optimal width on $\Zpn$, usable
+as the input stage of deeper quantum models, where no closed form survives the
+subsequent layers.
+
+\paragraph{Contributions.}
+\textbf{C1}, a no-go for product feature maps (\Cref{thm:product-nogo}) bounding the
+resolution depth of any block-product map by one block's size and collapsing to three
+kernel values for genuine product maps. \textbf{C2}, a dimension lower bound for
+arbitrary feature maps (\Cref{thm:dimension-bound}), ruling out every $n$-qubit encoding
+of the geometric profile on $\Zpn$ for $p \ge 3$ past an explicit threshold.
+\textbf{C3}, an exact construction (\Cref{thm:path-states}) realising precisely the
+strictly monotone ultrametric kernels, matching C2 on $\Zpn$ to within an additive
+constant, with a converse characterising every realisation with non-negative overlaps
+up to isometry, read modulo the populated levels. \textbf{C4}, its generalisation to arbitrary rooted trees, with $\Zpn$ as the
+specialisation in which the profile ties to $\abs{\cdot}_p$. \textbf{C5}, an empirical
+study on WordNet, Gene Ontology and the NCBI taxonomy separating ultrametricity from
+usable resolution, mapping the expressivity/hierarchy trade-off of a re-uploading
+extension, and quantifying the shot budget required.
+
+Every theorem has a corresponding numerical check, cited by test name at the point of
+use, and every experimental number in the text is generated from the experiment outputs
+rather than transcribed. \todo{Add the public repository URL once the remote exists; the
+availability statement must resolve before submission.}

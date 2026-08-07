@@ -1,0 +1,44 @@
+%% 10-limitations
+\section{Limitations and Outlook}
+\label{sec:limitations}
+
+\paragraph{Scope of the claims.}
+Restating the point of \Cref{sec:introduction} where a reader will look for it:
+$K(x,y) = f(\lcadepth(x,y))$ is computable classically in time linear in the tree depth,
+so nothing here accelerates kernel evaluation. The obstructions constrain quantum
+encoding design and the construction is useful as an input stage for deeper models;
+neither is a speedup claim. Two further boundaries are worth naming.
+\Cref{thm:dimension-bound} is strong when the profile decays quickly and weak when it
+does not: \Cref{rem:s-greater-one} shows $s > 1$ buys a uniform threshold rather than the
+exclusion itself, and gives the exact criterion \cref{eq:exclusion-criterion}: below
+$\min(s,1) = \log_p 2$, and at $p = 2$ for every $s$, the bound stops forbidding narrow
+encodings, and we do not know whether they exist there. And as \Cref{subsec:e2} reports, the path state loses on classification
+accuracy to both a random product map and to v-PuNNs; the paper's claims rest on
+\Cref{thm:product-nogo,thm:dimension-bound,thm:path-states} and on E1, not on E2.
+
+\paragraph{Preprocessing discards real structure.}
+All three hierarchies are directed acyclic graphs, and the longest-path reduction of
+\Cref{subsec:setup} throws away every hypernym but one, so a synset with two genuinely
+distinct parents is misrepresented. Extending the construction to DAGs is not a matter
+of choosing a better reduction: ancestor sets in a DAG need not be nested, and
+\cref{eq:overlap} --- the entire content of \Cref{thm:path-states} --- depends on that
+nesting. Separately, comparing against $2^{\text{height}}$-dimensional baselines forced
+a depth-$\EOneHeight$ truncation. The path-state encoding has no such limit, \Cref{tab:resources} giving
+$\WNQubitsCollapsed$ qubits for untruncated WordNet, so this constrains the
+comparison rather than the method; we have not measured the baselines at full depth
+because they cannot be represented there.
+
+\paragraph{Simulation only.}
+Everything here is statevector simulation. \Cref{prop:depolarising} covers the global
+depolarising channel analytically and \Cref{subsec:e5} gives a shot budget of
+$\ShotBudget$ per kernel entry, but coherent errors, readout error and device-specific
+noise are untested. The budget is per entry, so a full $m \times m$ kernel matrix costs
+$O(m^{2})$ times that, which is the practical barrier to hardware use at scale.
+
+\paragraph{Outlook.}
+The most immediate direction is using the path state as the input layer of a deeper
+variational model, where \Cref{subsec:e3} suggests the interesting regime is small
+distortion rather than large. The second is the $p$-adic connection: the encoding lives
+in the state space of quantum walks on the $p$-adic tree
+\citep{ZunigaGalindo2024QuantumWalks}, and relating the profile $f$ to the spectrum of a
+walk generator would give a dynamical reading of what is here a static construction.

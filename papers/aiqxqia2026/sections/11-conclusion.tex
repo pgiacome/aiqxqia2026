@@ -1,0 +1,26 @@
+%% 11-conclusion
+\section{Conclusion}
+\label{sec:conclusion}
+
+The geometry a quantum kernel imposes on its data is decided by the encoding, before
+training begins. For hierarchical data that geometry should be ultrametric, and we have
+shown that the encodings in common use cannot make it so. Product feature maps fail for
+a structural reason --- multiplicativity across digits is incompatible with resolving a
+tree beyond a bounded depth --- and encodings of insufficient width fail for a reason
+that does not depend on their structure at all, which is what rules out the entangling
+maps the first argument cannot reach.
+
+The positive result is that path states close the gap exactly. They realise precisely
+the strictly monotone ultrametric kernels, on arbitrary rooted trees, using a number of
+qubits that, on $\Zpn$ with a rapidly decaying profile, is within an additive constant
+of the proven lower bound, with $n+1$ non-zero amplitudes and $O(n \log \abs{V})$
+gates. Global depolarising noise acts on the induced distance as a non-decreasing affine map
+and so preserves level constancy and the strong triangle inequality at every rate,
+though not the normalisation that makes the noisy kernel ultrametric in our sense.
+Finite sampling does break the inequality, and the violation magnitude falls below one
+per cent of the kernel range at a measured $\ShotBudget$ shots per kernel entry.
+
+What this does not deliver is a faster kernel. The construction's value is as a
+constraint on encoding design and as an input stage for models where no closed form
+survives, and as an argument that the encoding deserves to be
+chosen for the geometry of the data rather than for the convenience of the circuit.

@@ -1,0 +1,197 @@
+%% 08-experiments
+\section{Experiments}
+\label{sec:experiments}
+
+All experiments are analytic or statevector simulations on CPU, each completing in
+seconds to minutes. Seeds, resolved configurations and library versions are recorded
+with every run, and every number below is generated from the experiment outputs rather
+than transcribed.
+
+\subsection{Setup}
+\label{subsec:setup}
+
+We use WordNet nouns via NLTK, the molecular-function namespace of the Gene Ontology,
+the Mammalia clade of the NCBI taxonomy, and synthetic regular $p$-ary trees for
+controlled ablations. \Cref{tab:datasets} gives the shapes.
+
+\begin{table}
+  \centering
+  \caption{The four hierarchies after preprocessing. Source columns describe the full
+    reduced tree; the rest describe the sample the kernels are evaluated on. Qubits is
+    $\lceil \log_2 \abs{V} \rceil$ for the path-state encoding.}
+  \label{tab:datasets}
+  \small
+  \input{tables/datasets}
+\end{table}
+
+\paragraph{Preprocessing, stated rather than assumed.}
+Each source is a directed acyclic graph in the wild, not a tree: WordNet synsets can
+have several hypernyms. We reduce each to a tree by keeping, for every node, the
+\emph{longest} path to the root, breaking ties by lexicographically smallest identifier.
+Multiple inheritance is therefore discarded, which \Cref{sec:limitations} records as a
+limitation. We then truncate every hierarchy at depth $\EOneHeight$, because the
+$2^{\text{height}}$-dimensional product baselines are otherwise not representable:
+WordNet reaches depth $\EOneSourceHeight$, so an angle or ZZ encoding would need
+$2^{\EOneSourceHeight}$ amplitudes per point. Truncation also puts every encoding on the
+same tree. Finally we sample $\EOneLeaves$ leaves, restrict to their ancestor closure,
+and pad shallow leaves to uniform depth. None of these steps changes the
+lowest-common-ancestor depths among the sampled leaves below the truncation, which is
+all the kernel depends on.
+
+\paragraph{Baselines.}
+Angle encoding, computational-basis encoding, a ZZ/IQP feature map with two repetitions,
+a random product map, a block-product map where representable, and two classical
+references: RBF kernels on integer leaf coordinates and on a one-hot encoding. The
+geometric profile uses base $2$ for the real datasets. Tying the base to the branching
+factor instead, $\NCBIRadix$ for NCBI, pushes $f(0)$ to around $10^{-13}$, below any
+tolerance a realistic shot budget could support, so the base is treated as the free
+design parameter it is.
+
+\subsection{E1: ultrametricity and resolution}
+\label{subsec:e1}
+
+\begin{table}
+  \centering
+  \caption{E1. Level constancy (l.c.) is zero exactly when the kernel is ultrametric
+    with some profile;
+    resolution (res.) counts distinguishable kernel values against the populated
+    levels. Only the path state scores well on both.}
+  \label{tab:e1}
+  \footnotesize
+  \input{tables/e1-ultrametricity}
+\end{table}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.78\linewidth]{figures/e1_violations}
+  \caption{E1 on WordNet. Panel~(a) asks whether the induced distance is an ultrametric
+    at all; panel~(b) how much of the hierarchy survives. Basis encoding passes (a)
+    perfectly and fails (b) completely, which is why both are reported.}
+  \label{fig:e1-violations}
+\end{figure}
+
+\Cref{tab:e1} reports both diagnostics of \Cref{def:diagnostics} on the three real
+hierarchies; synthetic trees get a systematic sweep in \Cref{subsec:e3}. The path-state encoding attains level constancy $\PathLevelConstancy$ and
+zero violations everywhere, at full resolution: the construction is exact on real
+hierarchies, not only on the regular trees of \Cref{thm:path-states}. Every product and
+entangling baseline has level constancy near $1$, angle reaching
+$\AngleLevelConstancy$ and the random product map $\RandProdLevelConstancy$, so their
+kernels are not imperfect ultrametrics but not ultrametric at all. For the product maps
+this is \Cref{thm:product-nogo}. For the entangling ZZ map it is consistent with
+\Cref{thm:dimension-bound} but not implied by it: \Cref{cor:no-n-qubit} is stated for
+the regular $p$-ary tree, and these hierarchies are irregular, so the ZZ result here is
+empirical.
+
+Worth stating plainly, because it complicates the headline: \textbf{basis encoding also
+achieves zero violations}, with level constancy exactly zero and resolution
+$\BasisResolution$ out of $\EOneLevels$. This is the $v^{*} = n$ corner discussed in
+\Cref{sec:theorem-a}, and it is why we do not claim the path state is the unique
+encoding with an ultrametric kernel. The correct claim is narrower: it is the only one
+that is both ultrametric and fully resolving.
+
+\subsection{E2: hierarchical classification}
+\label{subsec:e2}
+
+\begin{table}
+  \centering
+  \caption{E2. Five-fold cross-validated accuracy with a precomputed-kernel SVM at
+    $C = 1$; no hyperparameter was tuned. A dash marks an undefined rank correlation: a
+    delta kernel gives every distinct pair the same distance.}
+  \label{tab:e2}
+  \footnotesize
+  \input{tables/e2-accuracy}
+\end{table}
+
+\Cref{tab:e2} predicts a leaf's depth-$2$ ancestor and correlates the kernel's induced
+distance with true tree distance. Classes with fewer than five members are dropped, with
+the count recorded in the run metadata.
+
+The path state attains $\rho = \ETwoPathRho$ on every dataset. This is a consequence of
+\cref{eq:exactness}, not a fitted result: the induced distance is a strictly monotone
+function of tree distance, so perfect rank correlation follows. No baseline exceeds
+$\ETwoBestBaselineRho$.
+
+On accuracy the picture is different, and we report it as it came out. On WordNet the
+path state reaches $\ETwoPathAccuracy \pm \ETwoPathAccuracyStd$ while the
+\ETwoBestBaseline{} baseline reaches $\ETwoBestBaselineAccuracy$, with a similar
+ordering on Gene Ontology. A kernel that faithfully encodes tree distance is therefore
+not the best kernel for this task, which is unsurprising once stated: the label is the
+depth-$2$ ancestor, and a kernel spending capacity on depths $3$ through $\EOneHeight$
+spends it on distinctions the label ignores. The comparison against v-PuNNs
+\citep{Nguessan2025VPuNNs}, at $99.96\%$ leaf accuracy on WordNet, is not close and must
+be read the same way: that is a trained deep model with a bespoke optimiser over
+$p$-adic weight space, this a fixed encoding with a closed form and no parameters.
+Geometric fidelity and task accuracy are different objectives; this paper claims the
+former. The criterion was fixed before any number was produced, so that a weak result
+could not tempt a retrofit of the claims.
+
+\subsection{E3 and E4: ablations and the re-uploading trade-off}
+\label{subsec:e3}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.78\linewidth]{figures/e3_ablation}
+  \caption{E3. (a) The profile residual stays at machine precision for every strictly
+    monotone profile at every depth. (b) The \Cref{thm:dimension-bound} bound against
+    the $n$ qubits a product or IQP encoding provides: above the diagonal for
+    $p \ge 3$, below it for $p = 2$. (c) Profile choice against accuracy.}
+  \label{fig:e3-ablation}
+\end{figure}
+
+\Cref{fig:e3-ablation} sweeps profile shape, depth and branching factor over
+$\EThreeConfigs$ configurations. Panel~(a) is the robustness check for
+\Cref{thm:path-states}: the worst residual is $\EThreeWorstResidual$ and the total
+violation count is $\EThreeMaxViolations$, so exactness degrades with neither depth,
+radix nor profile shape. Panel~(b) is \Cref{cor:no-n-qubit} in picture form. For $p = 3$
+and $p = 5$ the required qubit count runs above the diagonal at every depth; for
+$p = 2$ it runs below, which is \Cref{rem:complementarity}. The curves use the closed
+form \cref{eq:row-sum} on the full tree, since a subsampled estimate saturates at
+$\log_2$ of the sample size.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.78\linewidth]{figures/e4_pareto}
+  \caption{E4 on WordNet, over $\EFourConfigs$ configurations of \cref{eq:reupload}.
+    Distortion grows continuously from zero, so the exact construction is the endpoint
+    of a tunable family rather than an isolated point; the alignment bought in exchange
+    is small.}
+  \label{fig:e4-pareto}
+\end{figure}
+
+E4 answers the structural question about \cref{eq:reupload} affirmatively: distortion
+grows continuously from zero, so the exact construction is the zero-distortion endpoint
+of a continuum rather than an isolated case. The quantitative answer is less
+encouraging. The exact point achieves alignment $\EFourExactAlignment$, and the best
+configuration anywhere in the family achieves $\EFourBestAlignment$ at distortion
+$\EFourBestDistortion$, a gain of $\EFourAlignmentGain$. On these datasets the
+trade-off exists but buys little, and we would not recommend paying for it.
+
+\subsection{E5: noise and finite shots}
+\label{subsec:e5}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.78\linewidth]{figures/e5_noise}
+  \caption{E5. (a) The violation magnitude decays as $O(1/\sqrt{\text{shots}})$,
+    tracking the dotted reference. (b) The violation \emph{count} saturates instead,
+    because a constant fraction of triples in an ultrametric is exactly tight.
+    (c) Depolarising noise leaves the geometry intact but flattens the profile until
+    resolution collapses.}
+  \label{fig:e5-noise}
+\end{figure}
+
+\Cref{prop:depolarising} predicts that depolarising noise cannot break the strong
+triangle inequality, and the measurement agrees exactly: at every rate up to $0.99$ the
+noiseless-estimate row has zero violations and zero excess. Resolution degrades, and
+only at extreme rates.
+
+Finite sampling is the real constraint, and measuring it correctly required abandoning
+the obvious statistic. The violation count \emph{increases} with the shot budget towards
+a plateau, which looks like a bug and is not: $\TieFraction$ of triples here meet
+\cref{eq:strong-triangle} with equality, and any perturbation flips about half of them,
+so the count converges to roughly half the tie fraction rather than to zero --- the
+observed plateau near $0.30$. The magnitude behaves as
+expected, falling from $\ExcessAtLowShots$ at $\ExcessAtLowShotsCount$ shots to
+$\ExcessAtHighShots$ at $\ExcessAtHighShotsCount$, a factor of $\sqrt{10}$ per decade.
+Defining the budget on the magnitude gives \textbf{$\ShotBudget$ shots per kernel entry}
+for a worst-case excess below $\ShotTargetExcess$, over $\ENoiseRepeats$ repetitions.
