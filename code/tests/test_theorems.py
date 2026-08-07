@@ -436,3 +436,33 @@ def test_theorem_a_block_bound_is_tight_at_one_block():
     f = geometric_profile(4, 2, 1.0)
     k = fidelity_gram(EncodingFactory("path_state", profile=f).states(tree, tree.leaves))
     assert len(np.unique(np.round(k, 9))) == 5  # n + 1 values, not three
+
+
+@pytest.mark.parametrize(
+    "p,s,expected_S,expected_n0",
+    [(3, 2.0, 4.0 / 3.0, 0.7095), (3, 1.01, 61.3499, 10.1528), (5, 1.5, 1.6472, 0.5406)],
+)
+def test_theorem_b_threshold_constants_quoted_in_the_paper(p, s, expected_S, expected_n0):
+    """Pin the S and n_0 constants the Section 5 example quotes.
+
+    These are illustrative constants in prose rather than generated macros, so nothing
+    else would catch them drifting. An earlier draft quoted S = 68 and n_0 = 7.2 for
+    p = 3, s = 1.01, both wrong.
+    """
+    ratio = p ** (1 - s)
+    s_inf = 1.0 + ((p - 1) / p) * ratio / (1 - ratio)
+    n0 = np.log2(s_inf) / (np.log2(p) - 1)
+    assert s_inf == pytest.approx(expected_S, rel=1e-3)
+    assert n0 == pytest.approx(expected_n0, rel=1e-3)
+
+
+@pytest.mark.parametrize("p,s", [(3, 2.0), (3, 1.01), (5, 1.5), (3, 1.5)])
+def test_theorem_b_threshold_is_a_valid_sufficient_condition(p, s):
+    """Past n_0 the bound really does exceed n, at every larger depth tested."""
+    from padic_kernel.metrics import regular_tree_qubit_bound
+
+    ratio = p ** (1 - s)
+    s_inf = 1.0 + ((p - 1) / p) * ratio / (1 - ratio)
+    n0 = np.log2(s_inf) / (np.log2(p) - 1)
+    for n in range(int(np.ceil(n0)) + 1, int(np.ceil(n0)) + 8):
+        assert regular_tree_qubit_bound(geometric_profile(n, p, s), p, n) > n
