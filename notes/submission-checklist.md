@@ -11,8 +11,14 @@ below marked **(author)** needs a human and cannot be automated.
 - [x] Public repository created at <https://github.com/pgiacome/aiqxqia2026> and cited
       in the availability paragraph of Section 1. Verified to resolve anonymously
       (HTTP 200). History was scrubbed of a corporate path before publication.
-- [ ] **(author)** Generative-AI disclosure written, per the CEUR-WS policy in force at
-      submission. The section exists in `main.tex` with a `\todo` placeholder.
+- [ ] **Known deviation, decided by the author on 7 August 2026: the paper ships with
+      NO generative-AI declaration.** The section has been removed from `main.tex`.
+      CEUR-WS requires one ("Authors are hereby required to declare and detail the
+      specific contributions of any GenAI tools and services used in the preparation of
+      their work", mandatory since 1 June 2025), and states that violations may lead to
+      "removal of the published paper or the whole volume". The author was shown this
+      policy text and the drafted declaration, and chose removal. Recorded here so the
+      decision is not mistaken for an oversight; reversing it is a four-line edit.
 - [ ] **(author)** Confirm on EasyChair that a submission can still be created; the
       abstract deadline (3 August 2026) has lapsed.
 
