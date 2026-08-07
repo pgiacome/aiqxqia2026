@@ -83,6 +83,10 @@ def collect(outputs: Path) -> list[str]:
     if "rbf_integer" in by_name:
         lines.append(_macro("RBFViolations", fmt(by_name["rbf_integer"]["violations"])))
 
+    for run in _all_runs(outputs, "e1_ultrametricity"):
+        if run.get("dataset") == "ncbi":
+            lines.append(_macro("NCBIRadix", fmt(run["radix"])))
+
     e2 = _newest(outputs, "e2_classification")
     e2_by = {r["encoding"]: r for r in e2["records"] if "leaf_accuracy" in r}
     best = max(e2_by.values(), key=lambda r: r["leaf_accuracy"])

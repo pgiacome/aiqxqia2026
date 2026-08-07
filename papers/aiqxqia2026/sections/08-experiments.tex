@@ -32,11 +32,11 @@ node, the \emph{longest} path to the root, breaking ties by lexicographically sm
 identifier. Multiple inheritance is therefore discarded, which we record as a
 limitation in \Cref{sec:limitations} rather than as a detail.
 
-We then truncate every hierarchy at depth $8$. This is needed because the
+We then truncate every hierarchy at depth $\EOneHeight$. This is needed because the
 $2^{\text{height}}$-dimensional product baselines are otherwise not representable:
 WordNet reaches depth $\EOneSourceHeight$, so an angle or ZZ encoding would require
 $2^{\EOneSourceHeight}$ amplitudes per point. Truncation also has the further benefit that
-every encoding is compared on exactly the same tree. Finally we sample $256$ leaves,
+every encoding is compared on exactly the same tree. Finally we sample $\EOneLeaves$ leaves,
 restrict to their ancestor closure, and pad shallow leaves to uniform depth. None of
 these steps changes the lowest-common-ancestor depths among the sampled leaves below
 the truncation, which is all the kernel depends on.
@@ -46,7 +46,7 @@ Angle encoding, computational-basis encoding, a ZZ/IQP feature map with two
 repetitions, a random product map, a block-product map where representable, and two
 classical references: an RBF kernel on integer leaf coordinates and one on a one-hot
 encoding. The geometric profile uses base $2$ throughout for the real datasets. Tying
-the profile base to the branching factor instead, $38$ for NCBI, pushes
+the profile base to the branching factor instead, $\NCBIRadix$ for NCBI, pushes
 $f(0)$ to around $10^{-13}$, below any resolution tolerance that a realistic shot
 budget could support, so the base is treated as the free design parameter it is.
 
@@ -122,7 +122,7 @@ path state reaches $\ETwoPathAccuracy \pm \ETwoPathAccuracyStd$ while the
 similar on Gene Ontology. A kernel that faithfully encodes tree distance is therefore
 \emph{not} the best kernel for this classification task, which is unsurprising once
 stated: the label is the depth-$2$ ancestor, and a kernel that also spends
-representational capacity on depths $3$ through $8$ is spending it on distinctions the
+representational capacity on depths $3$ through $\EOneHeight$ is spending it on distinctions the
 label ignores. Geometric fidelity and task accuracy are different objectives, and this
 paper claims the former.
 

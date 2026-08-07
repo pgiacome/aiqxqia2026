@@ -3573,3 +3573,48 @@ construction. This is exactly the scenario §8 of the spec pre-committed to.
 Items the literature search could not verify were **dropped, not cited**: a Murtagh
 2009 ultrametric-clustering paper (bibliographic detail unconfirmed) and a KDD '25
 acceptance claim for arXiv:2507.17787, which is cited as a preprint instead.
+
+**7 August 2026 — Tasks 17–19 complete.** The paper is drafted, corrected and gated.
+20 pages, 18 of body against the CEUR floor of 10. 133 tests pass; `ruff` and `mypy`
+clean; all 16 references verified; experiments reproduce bit-identically.
+
+**The proof audit was the most valuable step in the whole plan.** An adversarial read of
+Sections 3--7 returned three *blocking* findings, all confirmed numerically before being
+acted on, none a false alarm:
+
+1. **Theorem A's three-value conclusion was false for block-product maps.** Definition
+   3.7 admits the single-block partition, under which the path state is itself a
+   block-product map realising `n+1` distinct values. The proof only ever constrained
+   blocks strictly after `B*`. Restated as a resolution bound of `|B*| + 2`, collapsing
+   to three values only for genuine product maps, with a new remark recording that the
+   bound is tight.
+2. **Theorem C's converse was false.** A fidelity kernel fixes only overlap *moduli*,
+   and those do not determine the Gram matrix up to phases: Bargmann invariants are
+   gauge invariant but are not functions of the moduli. There is now an explicit
+   counterexample in the paper -- a PSD Gram realising the same kernel with Bargmann
+   invariant `-i/8` against the path state's `+1/8` -- and the converse requires
+   non-negative overlaps.
+3. **Corollary 5.2's "for every `p >= 3`" was false** for `s` near 1 and small `n`. At
+   `p=3, s=1.01, n=1` the bound gives 0.85 qubits, and a single qubit really does
+   realise that kernel. Now quantified by an explicit threshold `n_0(p,s)`, with the
+   scope narrowed from "a strictly monotone ultrametric kernel" to "the geometric
+   profile with parameter `s`".
+
+Six further gaps were fixed: an off-by-one in Theorem A (`v >= max B*`, without which
+the `n = 2` product case does not close), a missing hypothesis in Lemma 3.3, the false
+claim that level constancy alone yields an ultrametric, an undefined `B*` at `v* = n`,
+an inverted `p`-adic identity, and Proposition 7.1 overstating what it proves (`K_r`
+breaks the `f(n) = 1` normalisation, so the honest statement is about the strong
+triangle inequality and level constancy). Two new tests pin the counterexamples.
+
+**Style pass.** No AI-vocabulary hits and no participial "-ing" analyses; em dashes were
+running at roughly one per 230 words and were cut by about a third. One genuine
+factual error surfaced while reading: a sentence in Section 9 whose antecedent inverted
+which method is more accurate.
+
+**Reproduction.** Rerunning all five experiments from scratch left `numbers.tex` and all
+three generated tables byte-identical.
+
+**Two blockers remain, both author-supplied**, and `experiments.preflight` fails until
+they clear: the author block (`TODO-AUTHOR`) and three `\todo` markers (author block,
+repository URL, generative-AI disclosure).
