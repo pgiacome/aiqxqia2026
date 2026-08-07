@@ -23,5 +23,5 @@ A quantum kernel compares data through the fidelity of an encoding, so the geome
   exactness to machine precision and separate ultrametricity from usable resolution: a
   basis encoding is ultrametric while resolving nothing. We claim no quantum speedup in
   kernel evaluation, and say so throughout; the contribution is a constraint on
-  encoding design and an optimal-width encoding for models where no closed form
-  survives.
+  encoding design and an encoding, of optimal width on $\Zpn$, for models where no
+  closed form survives.

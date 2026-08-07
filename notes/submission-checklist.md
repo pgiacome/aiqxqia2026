@@ -5,9 +5,9 @@ below marked **(author)** needs a human and cannot be automated.
 
 ## Blockers — the paper must not be uploaded until these clear
 
-- [ ] **(author)** Author name, affiliation, ORCID and email filled in. `main.tex`
-      currently carries `TODO-AUTHOR` / `TODO-AFFILIATION`, and page 1 shows a yellow
-      blocker box saying so.
+- [x] Author block filled in: Paolo Giacomelli, Tenax S.p.A., pgiacome@gmail.com.
+      No ORCID supplied; the field is omitted rather than guessed. CEUR templates
+      usually also carry a city and country in the affiliation -- add if wanted.
 - [x] Public repository created at <https://github.com/pgiacome/aiqxqia2026> and cited
       in the availability paragraph of Section 1. Verified to resolve anonymously
       (HTTP 200). History was scrubbed of a corporate path before publication.
