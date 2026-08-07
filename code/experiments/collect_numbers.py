@@ -127,6 +127,21 @@ def collect(outputs: Path) -> list[str]:
         _macro("EFourAlignmentGain", fmt(e4["alignment_gain_over_exact"])),
     ]
 
+    try:
+        wn = _newest(outputs, "wordnet_resources")
+    except FileNotFoundError:
+        logger.warning("no wordnet_resources run; WordNet macros will be absent")
+    else:
+        lines += [
+            _macro("WNNodes", fmt(wn["source_nodes"])),
+            _macro("WNHeight", fmt(wn["height"])),
+            _macro("WNPaddedNodes", fmt(wn["padded_nodes"])),
+            _macro("WNCollapsedNodes", fmt(wn["collapsed_nodes"])),
+            _macro("WNQubitsPadded", fmt(wn["qubits_padded"])),
+            _macro("WNQubitsCollapsed", fmt(wn["qubits_collapsed"])),
+            _macro("WNAmplitudes", fmt(wn["amplitudes"])),
+        ]
+
     e5 = _newest(outputs, "e5_noise")
     lines += [
         _macro("ShotBudget", fmt(e5["shot_budget"])),

@@ -129,8 +129,11 @@ alone are not the whole cost.
 
 \begin{table}
   \centering
-  \caption{Resources for the path-state encoding. The WordNet row is the full
-    hierarchy, before the truncation \Cref{sec:experiments} applies to the baselines.}
+  \caption{Resources for the path-state encoding, on the full WordNet hierarchy rather
+    than the depth-$\EOneHeight$ truncation \Cref{sec:experiments} applies to the
+    baselines. Qubits is for the dense $\C^{V}$ layout; the gate count is for the
+    level-indexed layout of \Cref{subsec:resources}, which costs about $\log_2 n$ more
+    qubits. The two columns therefore describe two circuits, not one.}
   \label{tab:resources}
   \begin{tabular}{lrrrr}
     \toprule
@@ -139,14 +142,30 @@ alone are not the whole cost.
     general tree & $\abs{V}$ & $\lceil \log_2 \abs{V} \rceil$ & $n+1$
       & $O(n \log \abs{V})$ \\
     $\Zpn$ & $\frac{p^{n+1}-1}{p-1}$ & $\approx n \log_2 p$ & $n+1$ & $O(n^{2}\log p)$ \\
-    WordNet (full) & $\EOneSourceNodes$ & $17$ & $\EOneSourceHeight + 1$ & --- \\
+    WordNet, padded & $\WNPaddedNodes$ & $\WNQubitsPadded$ & $\WNAmplitudes$ & --- \\
+    WordNet, collapsed & $\WNCollapsedNodes$ & $\WNQubitsCollapsed$ & $\WNAmplitudes$
+      & --- \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\Cref{tab:resources} collects the counts: the full WordNet noun hierarchy, at
-$\EOneSourceNodes$ nodes, fits in $17$ qubits with $\EOneSourceHeight + 1$ non-zero
-amplitudes. Comparing with \Cref{cor:no-n-qubit}, on $\Zpn$ the construction uses
+\Cref{tab:resources} collects the counts, and the WordNet rows need a word of care that
+an earlier draft of this paper did not take. The reduced noun hierarchy has
+$\WNNodes$ nodes, but \cref{eq:path-state} lives on a tree whose leaves all sit at
+depth $n$, and padding WordNet's shallow leaves out to depth $\WNHeight$ inflates the
+node count to $\WNPaddedNodes$ --- an order of magnitude, costing
+$\WNQubitsPadded$ qubits rather than the $\lceil \log_2 \WNNodes \rceil = 17$ one
+might expect from the unpadded figure.
+
+Most of that is recoverable. A padded leaf's chain is unary and private to it, so the
+$n - d$ basis vectors below its original depth $d$ are shared with no other leaf and
+contribute nothing to any off-diagonal overlap. Replacing the whole chain by a single
+node carrying their summed amplitude $\sqrt{1 - \sqrt{f(d)}}$ leaves
+\cref{eq:overlap} untouched and every kernel entry unchanged
+(\testname{test_theorem_c_padding_collapse_preserves_the_kernel}). One node per shallow
+leaf brings WordNet to $\WNCollapsedNodes$ nodes and $\WNQubitsCollapsed$ qubits.
+
+Comparing with \Cref{cor:no-n-qubit}, on $\Zpn$ the construction uses
 $\log_2 \abs{V} = n \log_2 p + \log_2 \frac{p}{p-1} + o(1)$ qubits while the bound
 demands at least $n \log_2 p - \log_2 S(p,s)$. For $s > 1$, where $S(p,s)$ is
 independent of $n$, the two differ by an additive constant and the encoding is optimal

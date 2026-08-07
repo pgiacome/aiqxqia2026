@@ -57,7 +57,7 @@ and the following corollary makes that quantitative.
     \label{eq:crossing}
     p^{n} \;>\; 2^{n}\, S(p,s,n) .
   \end{equation}
-  Two regimes make \cref{eq:crossing} concrete. For $s > 1$ the sum converges and
+  Three regimes make \cref{eq:crossing} concrete. For $s > 1$ the sum converges and
   $S(p,s,n) \le S(p,s) < \infty$ uniformly in $n$, so \cref{eq:crossing} holds for
   every $p \ge 3$ and every
   \begin{equation}
@@ -94,7 +94,7 @@ and the following corollary makes that quantitative.
   bound at $n = 1$ is $0.85$ qubits, while three qubit states with pairwise fidelity
   $3^{-1.01} \approx 0.33$ exist on the Bloch sphere. A \emph{single} qubit realises
   that strictly monotone ultrametric kernel exactly. The hypothesis $n > n_0(p,s)$ is
-  therefore necessary, not cosmetic.
+  therefore not cosmetic: some depth hypothesis is unavoidable.
 \end{example}
 
 \begin{remark}[Scope]
@@ -108,21 +108,27 @@ and the following corollary makes that quantitative.
 
 \begin{remark}[What $s > 1$ does and does not buy]
   \label{rem:s-greater-one}
-  It buys the $n$-independent threshold \cref{eq:crossing-threshold}, not the
-  exclusion itself. At $s = 1$ every term of \cref{eq:row-sum} equals $1$ and
+  It buys the $n$-independent threshold \cref{eq:crossing-threshold}, not the exclusion
+  itself. At $s = 1$ every term of \cref{eq:row-sum} equals $1$ and
   $S(p,1,n) = 1 + n(p-1)/p$ grows with the depth, so no uniform threshold exists ---
   but $p^{n}/\Theta(n)$ still overtakes $2^{n}$, and the exclusion holds from $n = 3$
-  at $p = 3$ and from $n = 2$ at $p = 5$. Only for $s \le \log_p 2$ does the argument
-  give out entirely, and there it should: a profile that flat is genuinely close to
-  constant, and \cref{eq:dimension-bound} correctly stops forbidding narrow encodings
-  (\testname{test_theorem_b_exclusion_survives_s_equal_one}).
+  at $p = 3$ and already at $n = 1$ at $p = 5$. Collecting the branches, the exclusion
+  holds for all large $n$ exactly when
+  \begin{equation}
+    \label{eq:exclusion-criterion}
+    \min(s, 1) \, \log p \;>\; \log 2,
+    \qquad\text{that is}\qquad \min(s,1) > \log_p 2 ,
+  \end{equation}
+  which reduces to $p \ge 3$ when $s \ge 1$ and to $s > \log_p 2$ below. It correctly
+  excludes $p = 2$ at every $s$, in agreement with \Cref{rem:complementarity}
+  (\testname{test_theorem_b_exclusion_criterion}).
 \end{remark}
 
 \begin{remark}[Theorems A and B are independent]
   \label{rem:complementarity}
   At $p = 2$ the denominator of \cref{eq:crossing-threshold} vanishes: the bound reads
   $q \ge n - \log_2 S(2,s)$, which is below $n$ for every $s$ and every $n$
-  ($\log_2 S(2,2) \approx 0.58$). \Cref{thm:dimension-bound} therefore leaves $n$-qubit
+  ($\log_2 S(2,2) = \log_2 1.5 \approx 0.585$). \Cref{thm:dimension-bound} therefore leaves $n$-qubit
   encodings on binary trees open, and it is \Cref{thm:product-nogo}'s structural
   argument that closes the product case there. Conversely \Cref{thm:product-nogo} says
   nothing about entangling maps at any radix. Neither theorem subsumes the other, and

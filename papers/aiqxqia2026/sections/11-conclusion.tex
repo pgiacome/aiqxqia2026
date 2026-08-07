@@ -12,10 +12,13 @@ maps the first argument cannot reach.
 
 The positive result is that path states close the gap exactly. They realise precisely
 the strictly monotone ultrametric kernels, on arbitrary rooted trees, using a number of
-qubits within an additive constant of the proven lower bound, with $n+1$ non-zero
-amplitudes and $O(n \log \abs{V})$ gates. Their ultrametricity is immune to global
-depolarising noise, whose effect on distances is affine, and survives finite sampling
-at a measured budget of $\ShotBudget$ shots per kernel entry.
+qubits that, on $\Zpn$ with a rapidly decaying profile, is within an additive constant
+of the proven lower bound, with $n+1$ non-zero amplitudes and $O(n \log \abs{V})$
+gates. Global depolarising noise acts on the induced distance as a non-decreasing affine map
+and so preserves level constancy and the strong triangle inequality at every rate,
+though not the normalisation that makes the noisy kernel ultrametric in our sense.
+Finite sampling does break the inequality, and the violation magnitude falls below one
+per cent of the kernel range at a measured $\ShotBudget$ shots per kernel entry.
 
 What this does not deliver is a faster kernel. The construction's value is as a
 constraint on encoding design and as an input stage for models where no closed form

@@ -467,7 +467,7 @@ def test_theorem_b_threshold_is_a_valid_sufficient_condition(p, s):
         assert regular_tree_qubit_bound(geometric_profile(n, p, s), p, n) > n
 
 
-@pytest.mark.parametrize("p,first_n", [(3, 3), (5, 2)])
+@pytest.mark.parametrize("p,first_n", [(3, 3), (5, 1)])
 def test_theorem_b_exclusion_survives_s_equal_one(p, first_n):
     """Losing the uniform threshold at s = 1 does not lose the exclusion.
 
@@ -534,3 +534,85 @@ def level_constancy_of(kernel, lca):
     from padic_kernel.metrics import level_constancy
 
     return level_constancy(kernel, lca)
+
+
+@pytest.mark.parametrize(
+    "p,s",
+    [
+        (2, 0.5), (2, 1.0), (2, 2.0), (2, 5.0),
+        (3, 0.5), (3, 0.7), (3, 2.0),
+        (5, 0.3), (5, 0.5),
+    ],
+)
+def test_theorem_b_exclusion_criterion(p, s):
+    """min(s, 1) > log_p 2 decides whether the exclusion holds for all large n.
+
+    It reduces to p >= 3 when s >= 1 and to s > log_p 2 below, and it correctly excludes
+    p = 2 at every s -- where eq:crossing reads 2**n > 2**n S, i.e. S < 1, impossible.
+    An earlier draft claimed the argument only gave out for s <= log_p 2, which is wrong
+    at p = 2.
+    """
+    from padic_kernel.metrics import regular_tree_dimension_bound
+
+    predicted = min(s, 1.0) > np.log(2) / np.log(p)
+    observed = regular_tree_dimension_bound(geometric_profile(60, p, s), p, 60) > 2.0**60
+    assert predicted == observed
+
+
+def test_theorem_b_p_two_is_never_excluded():
+    """At p = 2 the bound never reaches 2**n, for any s or n."""
+    from padic_kernel.metrics import regular_tree_dimension_bound
+
+    for s in (0.5, 1.0, 2.0, 8.0):
+        for n in (1, 2, 5, 12, 25):
+            assert regular_tree_dimension_bound(geometric_profile(n, 2, s), 2, n) <= 2**n
+
+
+def test_theorem_c_padding_collapse_preserves_the_kernel():
+    """Merging a shallow leaf's private padding chain into one node changes no entry.
+
+    The chain below a leaf's original depth d is unary and shared with nobody, so those
+    basis vectors contribute only to that leaf's norm. One node carrying their summed
+    amplitude sqrt(1 - sqrt(f(d))) reproduces the kernel exactly, which is what makes
+    the WordNet figure in Table 2 achievable.
+    """
+    from padic_kernel.profiles import Profile
+    from padic_kernel.tree import from_parent_map, pad_to_uniform_depth
+
+    parent_of = {
+        "r": None, "a": "r", "b": "r", "c": "r",
+        "a1": "a", "a2": "a", "a1x": "a1", "a1y": "a1",
+    }
+    base = from_parent_map(parent_of)
+    idx = {name: i for i, name in enumerate(base.labels)}
+    originals = ["a1x", "a1y", "a2", "b", "c"]
+    padded, tip = pad_to_uniform_depth(base)
+    leaves = tip[np.array([idx[name] for name in originals])]
+    height = padded.height
+    f = Profile(tuple(np.linspace(0.2, 1.0, height + 1)))
+    k_padded = fidelity_gram(EncodingFactory("path_state", profile=f).states(padded, leaves))
+
+    def chain(node: int) -> list[int]:
+        out = []
+        while node >= 0:
+            out.append(node)
+            node = int(base.parent[node])
+        return out[::-1]
+
+    amps = f.amplitudes()
+    nodes = sorted({u for name in originals for u in chain(idx[name])})
+    pos = {u: i for i, u in enumerate(nodes)}
+    shallow = [name for name in originals if int(base.depth[idx[name]]) < height]
+    psi = np.zeros((len(originals), len(nodes) + len(shallow)))
+    slot = len(nodes)
+    for row, name in enumerate(originals):
+        for u in chain(idx[name]):
+            psi[row, pos[u]] = amps[int(base.depth[u])]
+        depth = int(base.depth[idx[name]])
+        if depth < height:
+            psi[row, slot] = np.sqrt(1.0 - np.sqrt(float(f(depth))))
+            slot += 1
+
+    assert np.allclose(np.linalg.norm(psi, axis=1), 1.0, atol=1e-12)
+    assert psi.shape[1] < padded.num_nodes, "the collapse must actually save dimensions"
+    assert np.allclose((psi @ psi.T) ** 2, k_padded, atol=1e-12)
