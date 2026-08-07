@@ -8,9 +8,9 @@ below marked **(author)** needs a human and cannot be automated.
 - [ ] **(author)** Author name, affiliation, ORCID and email filled in. `main.tex`
       currently carries `TODO-AUTHOR` / `TODO-AFFILIATION`, and page 1 shows a yellow
       blocker box saying so.
-- [ ] **(author)** Public repository created and its URL substituted for the
-      availability `\todo` in `sections/01-introduction.tex`. The statement must
-      resolve.
+- [x] Public repository created at <https://github.com/pgiacome/aiqxqia2026> and cited
+      in the availability paragraph of Section 1. Verified to resolve anonymously
+      (HTTP 200). History was scrubbed of a corporate path before publication.
 - [ ] **(author)** Generative-AI disclosure written, per the CEUR-WS policy in force at
       submission. The section exists in `main.tex` with a `\todo` placeholder.
 - [ ] **(author)** Confirm on EasyChair that a submission can still be created; the
