@@ -1,0 +1,1254 @@
+% ---------------------------------------------------------------
+% p-adic Variational Quantum Circuits Have No Barren Plateaus
+% Target venue: AIQxQIA 2026 (CEUR-WS single-column, single-blind).
+% Author: Piero Giacomelli
+%
+% Compile: pdflatex main && bibtex main && pdflatex main && pdflatex main
+% ---------------------------------------------------------------
+\documentclass{ceurart}
+
+\sloppy
+
+% ceurart enables microtype font expansion, which needs scalable (Type 1)
+% fonts. On systems without the Libertinus fonts the CM fallback is not
+% scalable and expansion aborts the build; disabling it is harmless on
+% Overleaf and on the CEUR production system.
+\microtypesetup{expansion=false}
+
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage[capitalise,nameinlink]{cleveref}
+
+% ---- theorem environments (ceurart loads amsmath/amssymb but not amsthm) ----
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Used once, to state the question this paper answers with every term defined
+% in the statement itself.
+\theoremstyle{plain}
+\newtheorem{question}[theorem]{Question}
+\crefname{question}{Question}{Questions}
+
+% ---- notation ----
+\newcommand{\Qp}{\mathbb{Q}_p}
+\newcommand{\Zp}{\mathbb{Z}_p}
+\newcommand{\Qpmu}{\mathbb{Q}_{p,\mu}}
+\newcommand{\padicnorm}[1]{\left|#1\right|_p}
+\newcommand{\opnorm}[1]{\left\|#1\right\|}
+\newcommand{\inner}[2]{\langle #1, #2\rangle}
+\newcommand{\HH}{\mathcal{H}}
+\newcommand{\BB}{\mathcal{B}}
+\newcommand{\OK}{\mathcal{O}}
+\newcommand{\mm}{\mathfrak{m}}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\ket}[1]{\left|#1\right\rangle}
+\newcommand{\bra}[1]{\left\langle #1\right|}
+\newcommand{\proj}[1]{\ket{#1}\!\bra{#1}}
+\newcommand{\Uni}{\mathrm{U}}
+\newcommand{\Sph}{\mathbb{S}}
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\Nm}{\mathrm{Nm}}       % field norm z \mapsto z\bar z  (never N)
+\DeclareMathOperator{\Tr}{Tr}
+
+\begin{document}
+
+\copyrightyear{2026}
+\copyrightclause{Copyright for this paper by its authors.
+  Use permitted under Creative Commons License Attribution 4.0
+  International (CC BY 4.0).}
+
+\conference{AIQxQIA 2026: International Workshop on AI for Quantum and
+  Quantum for AI | co-located with AIxIA 2026, Perugia, Italy}
+
+\title{$p$-adic Variational Quantum Circuits Have No Barren Plateaus}
+
+\author[1]{Piero Giacomelli}[%
+email=pgiacome@gmail.com,
+]
+\address[1]{Tenax SPA, Verona, Italy}
+
+\begin{abstract}
+Barren plateaus, the exponential concentration of gradients in random
+parameterised quantum circuits, are the central trainability obstruction in
+variational quantum machine learning. We show that the phenomenon does not
+survive the passage from complex to $p$-adic scalars.
+
+The barren-plateau theorem rests on three ingredients: a compact ensemble
+carrying a Haar probability measure, moment data supplied by unitary
+$t$-designs, and concentration in the Archimedean absolute value. Over a
+quadratic extension $K$ of $\Qp$ each of the three breaks, and they break in
+different directions. The first fails outright: the unitary group of $K^{N}$ is
+non-compact for $N\ge 2$, so it carries no Haar probability measure and
+``Haar-random circuit'' has no meaning; we exhibit an explicit unbounded family
+at $p=3$. The compact replacement is the group $\Uni_N(\OK)$ of integral
+unitaries, which contains every circuit realisable from the known $p$-adic gate
+sets. The second ingredient is not missing but redundant: Haar averages over
+$\Uni_N(\OK)$ push forward, level by level, to counting measures on the finite
+unitary groups $\Uni_N(\OK/\mm^{k})$, and a character sum over
+$\Uni_N(\FF_{p^2})$ supplies in closed form the moment data that the complex
+theory obtains from $t$-designs. The third ingredient reverses. For an
+$n$-qubit circuit whose observable--generator commutator splits over $\FF_p$,
+the gradient attains the largest absolute value the $p$-adic convergence radius
+allows, with probability at least $1-p^{-1}-10\,p^{1-r}$, where $r$ measures how
+far the observable and the generator are from commuting modulo $p$. The bound
+does not depend on $n$, and $r$ grows like $2^{n}$, so the correction is doubly
+exponentially small exactly where the complex plateau is most severe. We give a
+standard observable--generator pair, Pauli $X$ against a phase rotation, that
+achieves $r=2^{n-1}$.
+
+The splitting hypothesis is a real restriction, not a formality: we exhibit a
+Hermitian matrix over $\FF_9$ that violates it. Subject to it, trainability in
+the $p$-adic model is limited by the conditioning of the optimiser, not by
+gradient concentration.
+\end{abstract}
+
+\begin{keywords}
+  quantum machine learning \sep
+  barren plateaus \sep
+  variational quantum circuits \sep
+  $p$-adic numbers \sep
+  non-Archimedean analysis \sep
+  trainability
+\end{keywords}
+
+\maketitle
+
+% =================================================================
+\section{Introduction}
+\label{sec:intro}
+
+A variational quantum circuit prepares $U(\theta)\psi_0$ and tunes $\theta$ to
+minimise $\loss(\theta)=\inner{U(\theta)\psi_0}{M\,U(\theta)\psi_0}$ for an
+observable $M$. McClean et al.~\cite{Mc18} showed that if $U(\theta)$ is drawn
+from an ensemble forming a unitary $2$-design on $\mathrm{U}(2^n)$, then
+$\mathbb{E}[\partial_\theta\loss]=0$ and
+$\mathrm{Var}[\partial_\theta\loss]=O(2^{-n})$. Gradients therefore concentrate
+exponentially: the landscape is flat almost everywhere, and the number of
+measurements needed to resolve a descent direction grows exponentially in the
+qubit count. Later work traced the effect to the cost function~\cite{Ce21} and
+to ansatz expressibility~\cite{Ho22}, and it remains the principal argument
+against scalable variational quantum machine learning.
+
+Read carefully, the theorem is a statement about the real numbers. It says that
+a real quantity, the gradient, is small in the Archimedean absolute value, with
+high probability under the Haar measure of a compact group whose volume
+concentrates as the dimension grows. Three separate facts are doing the work:
+the ensemble is a compact group and so carries a Haar probability measure; the
+second moment of that measure is computable because deep circuits approximate
+$2$-designs; and the resulting variance is small in an absolute value for which
+``small'' is a limiting statement. None of the three is a fact about quantum
+mechanics. All three are facts about $\mathbb{C}$.
+
+A parallel line of work replaces those scalars. Following Aniello, Mancini and
+Parisi~\cite{AMP23,AMP24,AMP23trace}, one rebuilds quantum kinematics over a
+quadratic extension $K=\Qpmu$ of the field $\Qp$ of $p$-adic numbers. States
+are vectors in $K^{N}$, gates are unitaries for a $K$-valued Hermitian form,
+and the geometry is \emph{ultrametric}:
+$\padicnorm{x+y}\le\max\{\padicnorm x,\padicnorm y\}$. The motivation is that
+ultrametric geometry is the intrinsic geometry of hierarchical data --
+taxonomies, phylogenies, file systems -- which classical $p$-adic learning
+theory has exploited for decades~\cite{Kh98,ZuGa22,ZG24dnn,Ma25}. The quantum
+side of the programme now has a qubit~\cite{SMW22qub}, a tensor
+product~\cite{Mu25tensor}, a universal gate set~\cite{SLMW26gates}, and a first
+quantum neural network~\cite{ZGZ26qnn}.
+
+Whether barren plateaus survive the substitution appears to be open, and the
+question needs care before it can even be asked. The complex statement concerns
+a variance, and a variance decaying like $2^{-n}$ has no $p$-adic meaning: the
+$p$-adic absolute value takes only the discrete values $p^{\mathbb{Z}}$, and a
+quantity is small when it is divisible by a high power of $p$
+(\Cref{sec:prelim}). The faithful translation asks how often the gradient
+attains the largest absolute value it can have. We state the question in the
+form in which this paper answers it, with every term defined in the statement.
+
+\begin{question}[Barren plateaus over $K$]
+\label{qst:plateau}
+Let $p$ be an odd prime, let $K$ be the unramified quadratic extension of $\Qp$,
+with ring of integers $\OK$ and non-trivial automorphism $z\mapsto\bar z$, and
+let $N=2^{n}$. Write $U^\ast$ for the conjugate transpose,
+$\inner vw=\sum_i\bar v_iw_i$ for the standard Hermitian form on $K^{N}$, and
+let $G_N$ be the group of matrices $U$ with entries in $\OK$ and
+$U^\ast U=\Id$, with Haar probability measure $\nu$. Fix an observable
+$M=M^\ast$ and a generator $A=-A^\ast$ with entries in $\OK$, a vector
+$\psi_0\in\OK^{N}$ with $\inner{\psi_0}{\psi_0}=1$, and a block $U_B\in G_N$.
+For $U_A\in G_N$ and $\theta\in\Zp$ consider the circuit and the loss
+\[
+  U(\theta)\;=\;U_B\,\exp_p(p\,\theta A)\,U_A,
+  \qquad
+  \loss(\theta)\;=\;\inner{U(\theta)\psi_0}{M\,U(\theta)\psi_0},
+\]
+where $\exp_p$ is the exponential series, and let $\partial_\theta\loss$ be
+the coefficient of $\theta$ in the expansion of $\loss$ at $\theta=0$. Then
+$\padicnorm{\partial_\theta\loss}\le p^{-1}$ always. If $U_A$ is drawn from
+$\nu$, does
+$\Pr\bigl[\,\padicnorm{\partial_\theta\loss}=p^{-1}\,\bigr]$ remain bounded
+away from zero as $n\to\infty$, and for which pairs $(M,A)$?
+\end{question}
+
+Three features of the statement are forced rather than chosen. The ensemble is
+$G_N$ and not the full unitary group of $K^{N}$, because the full group is
+non-compact and carries no Haar probability measure, so posed over it the
+question has no meaning; this is the first point of the list below. The
+generator enters as $p\,\theta A$ because that is exactly what convergence of
+$\exp_p$ requires. And the benchmark is $p^{-1}$ rather than $1$, because every
+convergent $p$-adic ansatz confines its one-parameter subgroups to the
+principal congruence subgroup, so $p^{-1}$ is the largest gradient any such
+ansatz permits (\Cref{rem:scale}).
+
+A heuristic suggests the answer is yes. The normalised gradient
+$p^{-1}\partial_\theta\loss$ lies in $\Zp$, and a Haar-random element of $\Zp$
+is a unit with probability $1-p^{-1}$, so one expects
+$\padicnorm{\partial_\theta\loss}=p^{-1}$ with probability close to $1-p^{-1}$,
+whatever the qubit count. \Cref{thm:main} confirms this, uniformly in $n$,
+under a splitting hypothesis on the commutator $[U_B^\ast MU_B,A]$ reduced
+modulo $p$ (\Cref{def:nondeg}). The configurations that fail are
+those in which $U_B^\ast MU_B$ and $A$ commute modulo $p$ (\Cref{cor:deg}); as
+$U_B$ varies they form a clopen union of congruence classes of measure
+$O(p^{-1})$ (\Cref{sec:discussion}), small but strictly positive, a
+distinction the complex theory never has to make. Outside the splitting class
+the question remains open (\Cref{sec:limitations}).
+
+We take the three ingredients in turn.
+
+\begin{itemize}
+\item \textbf{The ensemble is wrong} (\Cref{sec:noncompact}). $\Uni(K^{N})$ is
+  non-compact for every $N\ge2$; we give an explicit unbounded family at $p=3$
+  (\Cref{prop:noncompact,ex:p3}). There is therefore no Haar probability
+  measure on the full unitary group, and the plateau question, phrased over it,
+  is ill posed. The compact replacement is the integral unitary group
+  $G_N=\Uni_N(\OK)$, which contains every circuit built from the currently
+  known realisable $p$-adic gate sets (\Cref{prop:gates}).
+\item \textbf{The missing combinatorics are not needed}
+  (\Cref{sec:counting}). Haar averages over $G_N$ push forward to uniform
+  counting measures on the finite unitary groups $\Uni_N(\OK/\mm^{k})$
+  (\Cref{lem:pushforward}), and Haar-random states push forward to the uniform
+  measure on a finite Hermitian sphere (\Cref{lem:transitive}). At level one
+  this turns every question about leading $p$-adic digits into a character sum
+  over $\FF_{p^2}$, which we evaluate in closed form (\Cref{lem:count}).
+\item \textbf{The conclusion reverses} (\Cref{sec:main}).
+  \Cref{thm:main} shows that for an $n$-qubit circuit whose
+  observable--generator commutator is $r$-non-degenerate modulo $p$ in the sense
+  of \Cref{def:nondeg},
+  \[
+    \Pr\bigl[\,\padicnorm{\partial_\theta\loss}=p^{-1}\,\bigr]\;\ge\;
+    1-\tfrac1p-10\,p^{1-r},
+  \]
+  and $p^{-1}$ is the largest absolute value any convergent $p$-adic ansatz
+  permits (\Cref{rem:scale}). The gradient is therefore generically as large as
+  it can be, with a bound that does not depend on $n$ at all.
+\end{itemize}
+
+\Cref{tab:compare} summarises the comparison. Two features of the $p$-adic
+answer are worth flagging early because they have no complex analogue. The
+bound improves as the circuit becomes more expressive, inverting the
+relationship established in~\cite{Ho22}; and the set of bad
+observable--generator pairs is not a vague ``exponentially large region'' but
+the explicit locus $[\,\widehat M,A\,]\equiv0\bmod p$, a condition one can check
+by reducing two integer matrices and multiplying them.
+
+\begin{table}[t]
+\caption{Barren plateaus over $\mathbb{C}$ and over $K=\Qpmu$. Each row is one
+  ingredient of the argument of~\cite{Mc18} and what becomes of it.}
+\label{tab:compare}
+\centering
+\small
+\begin{tabular}{@{}p{0.26\linewidth}p{0.32\linewidth}p{0.32\linewidth}@{}}
+\toprule
+ & \textbf{Complex} & \textbf{$p$-adic} \\
+\midrule
+Ensemble & $\mathrm{U}(2^{n})$, compact & $\Uni(\HH_N)$ non-compact; use
+  $G_N=\Uni_N(\OK)$ \\
+Source of moments & unitary $t$-designs & character sums over
+  $\Uni_N(\FF_{p^2})$ \\
+Gradient statistic & variance $O(2^{-n})$ & $\Pr[\text{maximal}]\ge
+  1-p^{-1}-10p^{1-r}$ \\
+Scaling in $n$ & exponential decay & none \\
+Bad set & full measure as $n\to\infty$ & the locus
+  $[\widehat M,A]\equiv0\bmod p$ \\
+Role of expressibility & more expressive $\Rightarrow$ flatter~\cite{Ho22} &
+  more random $\Rightarrow$ larger gradients \\
+\bottomrule
+\end{tabular}
+\end{table}
+ We fix $p$ odd and $K/\Qp$ unramified throughout, work in
+finite dimension, and randomise a single parameter in the standard two-block
+ansatz of~\cite{Mc18}. \Cref{sec:discussion} states precisely what is and is
+not established. The load-bearing restriction is the splitting hypothesis of
+\Cref{def:nondeg}, which \Cref{rem:notspectral} shows is not automatic; the
+example of \Cref{ex:witness} shows it is nevertheless satisfied by the most
+ordinary pair one might write down. The paper is theoretical: no $p$-adic
+quantum hardware exists, and, as recalled in \Cref{rem:nosampling}, the
+$p$-adic model has no Monte Carlo readout, so the empirical protocol behind
+barren-plateau plots in the complex setting has no counterpart here.
+\Cref{sec:why} argues that the result is nonetheless useful, and that its
+first use is diagnostic and concerns the complex theory: the plateau survives
+every change we make to the circuit and not the one we make to the field, which
+locates the hypothesis a mitigation has to attack.
+
+% =================================================================
+\section{Preliminaries}
+\label{sec:prelim}
+
+We compress the background to what the proofs use; \cite{Go97} is the reference
+for $p$-adic arithmetic and \cite{AMP23,AMP24} for the quantum formalism. A
+reader who works on variational algorithms but not on non-Archimedean analysis
+needs three facts, and we state them informally before the definitions.
+
+\emph{Small means divisible.} The $p$-adic absolute value measures divisibility,
+not magnitude: $\padicnorm x=p^{-v_p(x)}$, where $v_p(x)$ counts the factors of
+$p$ in $x$. Taking $p=3$, we have $\left|18\right|_3=1/9$ because $18=2\cdot3^2$,
+while $\left|1/9\right|_3=9$ and $\left|2\right|_3=1$. Integers divisible by a high power of
+$p$ are the small ones.
+
+\emph{The scale is discrete.} The values taken by $\padicnorm\cdot$ are the
+powers $p^{\mathbb{Z}}$, so there is no continuum of small quantities and no
+notion of a quantity that is merely somewhat small. A gradient is either a unit,
+or divisible by $p$, or by $p^2$, with nothing in between. This is why
+``exponential concentration'' has to be re-read before it can be asked about:
+$\mathrm{Var}=O(2^{-n})$ has no $p$-adic meaning, and the faithful translation
+is whether the valuation $v_p$ of the gradient grows with $n$.
+\Cref{qst:plateau} asks the sharpest form of this, which is why the answer here
+is a probability of attaining one specific value rather than a decay rate.
+
+\emph{Sums do not grow, and cancellation is a congruence.} The ultrametric
+inequality $\padicnorm{x+y}\le\max\{\padicnorm x,\padicnorm y\}$ holds with
+equality whenever the two terms have different sizes. A sum is therefore as
+large as its largest term unless the leading digits cancel exactly, and that
+cancellation is a condition modulo $p$ -- a finite, checkable condition rather
+than a limiting one. This is the structural reason the whole second-moment
+analysis of \Cref{sec:counting} collapses onto counting in finite groups, where
+the complex theory needs $t$-design combinatorics: reduction modulo $p$ carries
+Haar measure on the integral unitary group to the uniform measure on a finite
+unitary group, and questions about leading digits become character sums over
+$\FF_{p^2}$.
+
+One expectation does not carry over, and it is a basic one. Generalised
+probabilities in this formalism lie in $\Qp$ rather than in $[0,1]$, so
+amplitudes have no frequentist reading and
+cannot be estimated by repeated measurement; readout is algebraic, and
+\Cref{rem:nosampling} states what a plateau means once sampling is unavailable.
+
+\subsection{Arithmetic}
+
+Fix an odd prime $p$. For $x\in\mathbb{Q}^\ast$ let $v_p(x)$ be the exponent of
+$p$ in $x$ and $\padicnorm x=p^{-v_p(x)}$, with $\padicnorm 0=0$ and
+$v_p(0)=+\infty$; $\Qp$ is the completion of $\mathbb{Q}$ for this absolute
+value and $\Zp=\{\padicnorm x\le1\}$ its ring of integers. The absolute value
+is \emph{ultrametric}: $\padicnorm{x+y}\le\max\{\padicnorm x,\padicnorm y\}$,
+with equality when $\padicnorm x\ne\padicnorm y$. Its value group is $p^{\mathbb{Z}}$,
+a discrete subgroup of $\mathbb{R}_{>0}$; this discreteness is used repeatedly
+below and is the single most important difference from the real case.
+
+Let $\mu\in\Zp^\times$ be a non-square unit and $K=\Qpmu=\Qp(\sqrt\mu)$, the
+unramified quadratic extension, with involution
+$\sigma(x+\sqrt\mu\,y)=x-\sqrt\mu\,y$, written $\bar z$. The absolute value
+extends by $\padicnorm z=\padicnorm{\Nm(z)}^{1/2}$, where
+\[
+  \Nm:K\longrightarrow\Qp,\qquad \Nm(z)=z\bar z
+\]
+is the field norm. Write $\OK$ for the ring of integers of $K$ and $\mm=p\OK$
+for its maximal ideal, so that
+\[
+  \OK/\mm\;=\;\FF_{p^2},\qquad \Zp/p\Zp\;=\;\FF_p ,
+\]
+$\sigma$ reduces to the Frobenius $x\mapsto x^{p}$ of $\FF_{p^2}/\FF_p$, and
+$\Nm$ reduces to the norm $z\mapsto z^{1+p}$ of $\FF_{p^2}/\FF_p$. For an
+integral $z$ we write $\widetilde z\in\FF_{p^2}$ for its residue, and we apply
+the same notation entrywise to vectors and matrices. Because $K/\Qp$ is
+unramified, $\Nm(K^\ast)$ is exactly the set of elements of even
+valuation~\cite{Se73}.
+
+We isolate one arithmetic fact, used three times.
+
+\begin{lemma}[Unit norms]
+\label{lem:unitnorm}
+$\Nm(\OK^\times)=\Zp^\times$.
+\end{lemma}
+
+\begin{proof}
+The inclusion $\subseteq$ is clear. Conversely let $c\in\Zp^\times$. The norm
+of $\FF_{p^2}/\FF_p$ is the map $z\mapsto z^{1+p}$ on $\FF_{p^2}^\times$; its
+kernel has order $p+1$, so its image has order $(p^2-1)/(p+1)=p-1$ and is all
+of $\FF_p^\times$. Pick $s_1\in\OK^\times$ with $\Nm(s_1)\equiv c\bmod p$. Then
+$c/\Nm(s_1)\in1+p\Zp$, and every element of $1+p\Zp$ is a square in $\Zp$ for
+$p$ odd, by Hensel's lemma applied to $X^2-c/\Nm(s_1)$ at $X=1$. Writing
+$c/\Nm(s_1)=X^2$ with $X\in1+p\Zp$ and setting $s=Xs_1$ gives
+$\Nm(s)=X^2\Nm(s_1)=c$.
+\end{proof}
+
+\subsection{States, gates, gradients}
+
+Let $\HH_N=K^{N}$ with $\opnorm{v}=\max_i\padicnorm{v_i}$ and
+$\inner vw=\sum_i\bar v_i w_i$, linear in the second argument. This is the
+model finite-dimensional $p$-adic Hilbert space~\cite{AMP23}; the $n$-qubit
+space is $\HH_N$ with $N=2^n$, built from $\HH_2^{\otimes n}$ via the $p$-adic
+tensor product~\cite{Mu25tensor}. An operator $A\in\BB(\HH_N)$ has
+$\opnorm A=\max_{ij}\padicnorm{A_{ij}}$ and adjoint
+$(A^\ast)_{ij}=\overline{A_{ji}}$; ultrametricity makes $\opnorm{\cdot}$
+submultiplicative, since
+$\padicnorm{(AB)_{ij}}=\padicnorm{\sum_kA_{ik}B_{kj}}
+\le\max_k\padicnorm{A_{ik}}\padicnorm{B_{kj}}$. A \emph{gate} is a $U$ with
+$U^\ast U=\Id$; these form the group $\Uni(\HH_N)$. A vector $\psi$ is
+\emph{admissible} if $\inner\psi\psi=1$, and observables are selfadjoint
+operators.
+
+Two features of the model matter below. First, positivity is unavailable:
+$\inner\psi\psi\ge0$ is meaningless because $K$ is unordered, so states form an
+affine rather than a convex set and measurement is described by selfadjoint
+operator-valued measures with $\Qp$-valued generalised
+probabilities~\cite{AMP23,Kh97}. Second:
+
+\begin{remark}[No Monte Carlo readout~\cite{AMP23}]
+\label{rem:nosampling}
+Generalised probabilities lie in $\Qp$, not $[0,1]$, and cannot be estimated by
+repeated sampling. Readout is algebraic: the algorithm returns $p$-adic numbers
+which the user inspects digit by digit. The operational meaning of a barren
+plateau changes accordingly. In the complex setting a small gradient is bad
+because it takes many shots to resolve; in the $p$-adic setting there are no
+shots, and a gradient of high valuation is bad because the leading digits of
+the parameter update vanish.
+\end{remark}
+
+For the one-parameter dependence we use the exponential of the $p$-adic Lie
+algebra. The series $\exp_p(X)=\sum_{m\ge0}X^m/m!$ converges whenever
+$\opnorm X<p^{-1/(p-1)}$~\cite{DDMS99}, this being the standard bound we adopt,
+and for $A^\ast=-A$ it defines a unitary. Following~\cite{Mc18} we take the two-block ansatz, in the
+normalisation forced by \Cref{rem:scale} below:
+\begin{equation}
+\label{eq:ansatz}
+  U(\theta)\;=\;U_B\,\exp_p(p\,\theta A)\,U_A ,\qquad
+  \theta\in\Zp,\quad A^\ast=-A,\quad A\in \BB(\HH_N)\ \text{integral} .
+\end{equation}
+Since $\loss$ is $p$-adic analytic in $\theta$, we define $\partial_\theta\loss$
+as the coefficient of $\theta$ in its Taylor expansion at $\theta=0$.
+
+\begin{remark}[The scale $p$ is forced, not chosen]
+\label{rem:scale}
+For $p$ odd we have $0<\tfrac1{p-1}<1$, and the value group of
+$\opnorm{\cdot}$ is the \emph{discrete} set $p^{\mathbb{Z}}$. No operator norm
+lies strictly between $p^{-1}$ and $1$, so the convergence bound
+$\opnorm{X}<p^{-1/(p-1)}$ is not a mild constraint that could be relaxed by a
+better estimate: it is \emph{equivalent} to $\opnorm X\le p^{-1}$, that is, to
+$X\equiv0\bmod\mm$. Under it, every term $X^{m}/m!$ with $m\ge1$ has norm at
+most $p^{-m}\,p^{(m-1)/(p-1)}\le p^{-1}$, since $v_p(m!)\le(m-1)/(p-1)$, so
+\[
+  \exp_p(\theta X)\;\equiv\;\Id \pmod{\mm}\qquad\text{for all }\theta\in\Zp .
+\]
+The one-parameter subgroup thus lies inside the principal congruence subgroup
+$\ker(\pi_1)$ of \Cref{sec:counting}, and every Taylor coefficient of $\loss$
+of positive order has valuation at least $1$. In particular
+\[
+  \padicnorm{\partial_\theta\loss}\;\le\;p^{-1}
+\]
+for any integral observable and any ansatz meeting the convergence bound. The generator in~\eqref{eq:ansatz} is written $pA$ with $A$
+integral for exactly this reason: the factor $p$ is not a normalisation we are
+free to choose, it is the entire content of the convergence condition, and
+$p^{-1}$ rather than $1$ is the correct benchmark for ``as large as possible''.
+We write
+\begin{equation}
+\label{eq:normgrad}
+  \nabla\loss\;:=\;p^{-1}\,\partial_\theta\loss
+\end{equation}
+for the \emph{normalised gradient}, which does satisfy
+$\padicnorm{\nabla\loss}\le1$, and state our results in terms of it.
+\end{remark}
+
+% =================================================================
+\section{The ensemble: the unitary group is not compact}
+\label{sec:noncompact}
+
+The barren-plateau question presupposes a Haar \emph{probability} measure on
+the group of $n$-qubit unitaries. Over $\mathbb{C}$ this is automatic because
+$\mathrm{U}(2^n)$ is compact. Over $K$ it fails, and it fails badly.
+
+\begin{proposition}
+\label{prop:noncompact}
+For every $N\ge 2$ the group $\Uni(\HH_N)$ is unbounded in the operator norm,
+hence non-compact, and carries no Haar probability measure.
+\end{proposition}
+
+\begin{proof}
+It suffices to treat $N=2$ and pad with the identity, since
+$U\mapsto U\oplus\Id_{N-2}$ embeds $\Uni(\HH_2)$ isometrically in
+$\Uni(\HH_N)$. We construct, for each $m\ge1$, a unitary of operator norm
+$p^{m}$.
+
+Put $a=p^{-m}$ and $t=\Nm(a)=p^{-2m}$. Since $\padicnorm t=p^{2m}>1=\padicnorm
+1$, ultrametricity gives $\padicnorm{1-t}=\padicnorm t$, so $v_p(1-t)=-2m$ is
+even. Because $K/\Qp$ is unramified, $\Nm(K^\ast)$ consists exactly of the
+elements of even valuation, so there is $c\in K$ with $\Nm(c)=1-t$. The vector
+$u=(a,c)^{\mathsf T}$ then satisfies
+\[
+  \inner uu \;=\; \bar aa+\bar cc\;=\;\Nm(a)+\Nm(c)\;=\;t+(1-t)\;=\;1 ,
+\]
+so $u$ is admissible, while $\padicnorm a=p^{m}$.
+
+Both $e_1$ and $u$ are admissible, so $e_1\mapsto u$ is an isometry between
+one-dimensional subspaces of the non-degenerate Hermitian space $\HH_2$. Witt's
+extension theorem for Hermitian forms over a field with involution, in
+characteristic $\ne2$~\cite[Ch.~7]{Gr02}, extends it to an isometry $U$ of
+$\HH_2$, that is, to an element of $\Uni(\HH_2)$. Its first column is $u$, so
+$\opnorm U\ge\padicnorm a=p^{m}$.
+
+Finally, $\Uni(\HH_N)$ is a closed subgroup of $\mathrm{GL}_N(K)$, hence
+locally compact; the compact subsets of $K^{N\times N}$ are the closed bounded
+ones, so an unbounded closed subgroup is not compact; and a locally compact
+group admits a finite Haar measure only when it is compact.
+\end{proof}
+
+\begin{example}[$p=3$]
+\label{ex:p3}
+Take $\mu=-1$, a non-square unit modulo $3$, so that $K=\mathbb{Q}_3(i)$ is
+unramified and $\Nm(x+iy)=x^2+y^2$. With $m=1$ we need $\Nm(a)=1/9$ and
+$\Nm(c)=8/9$. Take $a=1/3$ and $c=\tfrac13(x_1+iy_1)$ with $x_1^2+y_1^2=8$: the
+congruence $x_1^2+y_1^2\equiv2\pmod3$ has the solution $x_1\equiv y_1\equiv1$,
+which lifts to $\Zp$ by Hensel's lemma applied to $X^2-7$ at $X=1$, whose
+derivative $2X$ is a unit there. Then $\padicnorm a=\padicnorm c=3$, and
+completing $(a,c)^{\mathsf T}$ to a unitary gives an element of $\Uni(\HH_2)$
+of operator norm $3$. Replacing $1/3$ by $3^{-m}$ gives operator norm $3^{m}$.
+\end{example}
+
+\Cref{prop:noncompact} is not an artefact of a poor choice of Hermitian form.
+Over a local field the standard form $\sum\bar z_iz_i$ is isotropic in every
+dimension $N\ge2$ -- for $N=2$ isotropy is exactly the statement
+$-1\in \Nm(K^\ast)$, which holds in the unramified case -- and unitary groups
+of isotropic Hermitian forms are non-compact~\cite[Ch.~3]{PR94}. The
+compactness that the complex theory takes for granted comes from the
+positive-definiteness of $\sum\bar z_iz_i$ over $\mathbb{C}$, and positivity is
+precisely what the $p$-adic model gives up.
+
+\begin{definition}[Integral unitary group]
+\label{def:integral}
+$G_N \;=\; \Uni_N(\OK)\;=\;\{U\in\Uni(\HH_N)\;:\;U_{ij}\in\OK\ \text{for all
+$i,j$}\}$.
+\end{definition}
+
+\begin{proposition}
+\label{prop:compact}
+$G_N$ is a compact group and carries a unique Haar probability measure $\nu$.
+\end{proposition}
+
+\begin{proof}
+$G_N$ is closed under products, and under inverses because
+$U^{-1}=U^\ast$ has entries $\overline{U_{ji}}\in\OK$. As a subset of
+$\OK^{N\times N}$ it is bounded, and it is closed, being the solution set of
+the polynomial system $U^\ast U=\Id$ over the compact ring $\OK$. A closed
+bounded subset of $\OK^{N^2}$ is compact, and a compact group has a unique
+normalised Haar measure.
+\end{proof}
+
+Restricting to $G_N$ costs nothing for quantum computing, because everything
+one can currently build already lies there.
+
+\begin{proposition}
+\label{prop:gates}
+Every gate whose matrix entries lie in $\OK$ generates, under composition and
+tensor product, a subgroup of $G_N$. This applies to the $p$-adic Pauli gates
+and CNOT of~\cite{AMP23}, to the gate set drawn from irreducible
+representations of $\mathrm{SO}(3)_p$ of~\cite{SLMW26gates}, and  when
+$\sqrt2\in K$  to the $p$-adic Hadamard gate.
+\end{proposition}
+
+\begin{proof}
+Integrality is preserved by products and tensor products, and $G_N$ is a group
+by \Cref{prop:compact}. For the three gate sets it remains only to observe that
+their entries are integral. The Pauli and CNOT entries lie in $\{0,\pm1\}$. The
+entries of the $\mathrm{SO}(3)_p$ gates are roots of unity in $K$ and zeros;
+roots of unity are units, hence integral. For the Hadamard gate, if
+$\sqrt2\in K$ then $\padicnorm{\sqrt 2}=\padicnorm 2^{1/2}=1$ for odd $p$, so
+$1/\sqrt2\in\OK^\times$ and all four entries are units.
+\end{proof}
+
+\begin{remark}
+\label{rem:ensemble}
+The contrast with $\mathbb{C}$ runs deeper than a change of group. There,
+``Haar-random unitary'' and ``deep random circuit'' converge to each other, and
+that convergence is what makes the $t$-design argument of~\cite{Mc18} bite.
+Over $K$ the two notions come apart at the outset: the group of all unitaries
+is too large to randomise over, and the group generated by realisable gates is
+a compact subgroup with a different measure-theoretic structure altogether. We
+take $G_N$ as the ensemble because it is the smallest natural compact group
+containing all realisable circuits. Sharper results should be available for the
+compact group actually generated by a fixed gate set, which is where a
+hardware-aware analysis would have to go.
+\end{remark}
+
+% =================================================================
+\section{Haar averages are finite counting problems}
+\label{sec:counting}
+
+The argument of~\cite{Mc18} rests on unitary $t$-design combinatorics, for
+which we know of no $p$-adic counterpart. They are not needed. Compactness of
+$G_N$ arrives together with a filtration that turns every question about the
+leading digits of a Haar average into a finite count.
+
+For $k\ge1$ write $\OK_k=\OK/\mm^{k}$ and let
+$\pi_k:G_N\to \Uni_N(\OK_k)$ be reduction of matrix entries modulo $\mm^k$,
+where $\Uni_N(\OK_k)$ is the unitary group of the reduced Hermitian form over
+the finite ring $\OK_k$. For $k=1$ this is the finite unitary group
+$\Uni_N(\FF_{p^2})$.
+
+\begin{lemma}[Pushforward]
+\label{lem:pushforward}
+For every $k\ge1$ the map $\pi_k$ is a surjective group homomorphism and
+$(\pi_k)_\ast\nu$ is the uniform probability measure on $\Uni_N(\OK_k)$.
+Consequently, if $F:G_N\to\Zp$ is a function whose residue $F\bmod p^{k}$
+depends on $U$ only through $\pi_k(U)$, then
+\[
+  \nu\bigl(\{U: v_p(F(U))\ge k\}\bigr)
+  \;=\;\frac{\#\{g\in \Uni_N(\OK_k)\;:\;F(g)\equiv0\}}
+            {\bigl|\Uni_N(\OK_k)\bigr|}.
+\]
+\end{lemma}
+
+\begin{proof}
+Reduction modulo $\mm^k$ is a ring homomorphism $\OK\to\OK_k$ commuting with
+$\sigma$, because $\sigma(\mm^k)=\mm^k$; it therefore carries the relation
+$U^\ast U=\Id$ to its reduction, and $\pi_k$ is a homomorphism.
+
+For surjectivity, take $g\in\Uni_N(\OK_k)$ and lift its entries arbitrarily to
+a matrix $g_0\in\BB(\HH_N)$ with integral entries. Then $g_0^\ast g_0$ is
+selfadjoint and congruent to $\Id$ modulo $\mm^{k}$, say
+\[
+  g_0^\ast g_0\;=\;\Id+p^{\,l}S,\qquad l=k\ge1,\quad S^\ast=S\ \text{integral} .
+\]
+We improve $l$ by Newton iteration. Set $T=-S/2$, which is integral because $p$
+is odd, and selfadjoint because $S$ is; put $g_1=g_0(\Id+p^{\,l}T)$. Expanding,
+and using $T^\ast=T$ in the leftmost factor,
+\[
+  g_1^\ast g_1
+  =(\Id+p^{l}T)(\Id+p^{l}S)(\Id+p^{l}T)
+  =\Id+p^{l}\bigl(T+S+T\bigr)+p^{2l}\bigl(TS+ST+T^2\bigr)+p^{3l}TST ,
+\]
+and $T+T=-S$ kills the order-$p^{l}$ term, so $g_1^\ast g_1=\Id+p^{2l}S'$ with
+$S'$ selfadjoint and integral. Moreover $g_1\equiv g_0\bmod \mm^{l}$. Iterating
+produces a sequence $g_0,g_1,g_2,\dots$ with $g_{j+1}\equiv g_j\bmod
+\mm^{\,2^{j}k}$, which is Cauchy in the complete space $\BB(\HH_N)$ of integral
+matrices; its limit $h$ is integral, satisfies $h^\ast h=\Id$  hence is
+invertible with $h^{-1}=h^\ast$ integral, so $h\in G_N$  and satisfies
+$h\equiv g_0\bmod\mm^{k}$, that is $\pi_k(h)=g$.
+
+Being a continuous surjective homomorphism from the compact group $G_N$ onto
+the finite group $\Uni_N(\OK_k)$, $\pi_k$ carries $\nu$ to a translation-%
+invariant probability measure on the target, which by uniqueness of Haar
+measure is the uniform one. The displayed identity is the definition of the
+pushforward applied to the indicator of $\{F\equiv0\bmod p^k\}$, which by
+hypothesis is a $\pi_k$-pullback.
+\end{proof}
+
+We shall also need that Haar measure on $G_N$ moves a fixed admissible vector
+to the uniform measure on the integral sphere
+\[
+  \Sph_N \;=\;\{u\in\OK^{N}\;:\;\inner uu=1\},\qquad
+  \widetilde\Sph_N \;=\;\{\tilde u\in\FF_{p^2}^{N}:\inner{\tilde u}{\tilde
+  u}=1\} .
+\]
+The proof below is elementary and self-contained; it replaces an appeal to
+smoothness of the unitary group scheme, and it makes visible exactly where $p$
+odd is used.
+
+\begin{lemma}[Transitivity]
+\label{lem:transitive}
+Let $N\ge1$. Then $G_N$ acts transitively on $\Sph_N$, and for
+$\psi_0\in\Sph_N$ the pushforward of $\nu$ under $U\mapsto U\psi_0$ is the
+unique $G_N$-invariant probability measure on $\Sph_N$. Reduction modulo $\mm$
+maps $\Sph_N$ onto $\widetilde\Sph_N$ and carries that measure to the uniform
+measure on $\widetilde\Sph_N$.
+\end{lemma}
+
+\begin{proof}
+We argue in four steps.
+
+\emph{(i) Every $u\in\Sph_N$ is unimodular.} From
+$1=\padicnorm{\inner uu}\le\max_i\padicnorm{u_i}^2\le1$ we get
+$\max_i\padicnorm{u_i}=1$.
+
+\emph{(ii) A norm-one vector splits off an orthogonal complement.} Let $L$ be
+any free Hermitian $\OK$-lattice whose Gram determinant is a unit  call such
+a lattice \emph{unimodular}  and let $u\in L$ with $\inner uu=1$. The map
+$P(x)=x-\inner ux\,u$ is $\OK$-linear, because $\inner u\cdot$ is linear in its
+second argument, and $\inner u{P(x)}=\inner ux(1-\inner uu)=0$. Hence
+$L=\OK u\oplus u^{\perp}$ orthogonally, where $u^{\perp}=\ker\inner u\cdot$. As
+a direct summand of a free module over the local ring $\OK$, the lattice
+$u^{\perp}$ is free, of rank one less. It is again unimodular: the change of
+basis from a basis of $L$ to one adapted to the splitting multiplies the Gram
+determinant by $\Nm(\det Q)$ for some $Q\in\mathrm{GL}(\OK)$, hence by a unit,
+while the adapted Gram matrix is $\mathrm{diag}(1,G)$, so $\det
+G\in\OK^\times$. Applied to $L=\OK^{N}$ with the standard form, whose Gram
+determinant is $1$, this splits $\OK^{N}=\OK u\perp u^{\perp}$ with
+$u^{\perp}$ unimodular of rank $N-1$.
+
+\emph{(iii) Every unimodular Hermitian $\OK$-lattice $L$ of rank $\ge1$
+contains a vector of norm $1$.} The reduction $L/\mm L$ carries a
+non-degenerate Hermitian form over $\FF_{p^2}$. That form cannot vanish on the
+diagonal: if $\inner xx=0$ for all $x$, then polarising gives
+$\Tr_{\FF_{p^2}/\FF_p}\inner xy=0$ for all $x,y$, and replacing $y$ by
+$\sqrt\mu\,y$ gives $\Tr_{\FF_{p^2}/\FF_p}(\sqrt\mu\inner xy)=0$; writing
+$\inner xy=a+b\sqrt\mu$ these two conditions read $2a=0$ and $2b\mu=0$, so
+$\inner xy=0$ identically, contradicting non-degeneracy. Choose therefore
+$x_0\in L$ whose residue has non-zero norm, so that
+$c=\inner{x_0}{x_0}\in\Zp^\times$. By \Cref{lem:unitnorm} there is
+$s\in\OK^\times$ with $\Nm(s)=c^{-1}$, and then $\inner{sx_0}{sx_0}=\Nm(s)c=1$.
+
+\emph{(iv) Transitivity.} Any two unimodular Hermitian $\OK$-lattices of equal
+rank are isometric, by induction on the rank: each contains a vector of norm
+$1$ by (iii), and (ii) splits that vector off leaving unimodular lattices of
+rank one less, the rank-zero case being trivial. Given $u,u'\in\Sph_N$, apply
+(ii) to both and choose an isometry
+$\phi:u^{\perp}\to u'^{\perp}$; the map sending $u\mapsto u'$ and acting as
+$\phi$ on $u^\perp$ is an isometry of $\OK^N$, that is an element $U\in G_N$
+with $Uu=u'$.
+
+Uniqueness of the invariant probability measure on a transitive compact group
+action is standard. For the reduction, note first that every
+$\tilde u\in\widetilde\Sph_N$ lifts: choose any integral $u_0$ with residue
+$\tilde u$, so $c=\inner{u_0}{u_0}\in1+p\Zp$; by Hensel $c^{-1}=X^2$ with
+$X\in1+p\Zp$, and $u=Xu_0$ lies in $\Sph_N$ with the same residue. Reduction
+therefore maps $\Sph_N$ onto $\widetilde\Sph_N$, and it intertwines the action
+of $G_N$ with the action of $\Uni_N(\FF_{p^2})$, which is surjective by
+\Cref{lem:pushforward}. The image of an invariant measure under an equivariant
+surjection onto a transitive finite action is the uniform measure.
+\end{proof}
+
+% =================================================================
+\section{Gradient valuations}
+\label{sec:main}
+
+\subsection{The gradient is a Hermitian form}
+
+\begin{lemma}
+\label{lem:grad}
+For the ansatz~\eqref{eq:ansatz} with $\psi=U_A\psi_0$ and
+$\widehat M=U_B^\ast MU_B$, the normalised gradient~\eqref{eq:normgrad} is
+\[
+  \nabla\loss\;=\;\inner{\psi}{\,C\,\psi},
+  \qquad C\;=\;[\widehat M,A]\;=\;\widehat MA-A\widehat M .
+\]
+The operator $C$ is selfadjoint, so $\nabla\loss\in\Qp$; and if
+$M,A,U_A,U_B,\psi_0$ are integral then $\nabla\loss\in\Zp$, so
+$\padicnorm{\nabla\loss}\le1$, equivalently
+$\padicnorm{\partial_\theta\loss}\le p^{-1}$.
+\end{lemma}
+
+\begin{proof}
+Since $U(\theta)\psi_0=U_B\exp_p(p\theta A)\psi$ and
+$\inner{U_Bx}{MU_Bx}=\inner{x}{\widehat Mx}$, we have
+$\loss(\theta)=\inner{\exp_p(p\theta A)\psi}{\widehat M\exp_p(p\theta A)\psi}$.
+The coefficient of $\theta$ in the expansion is
+\[
+  \inner{pA\psi}{\widehat M\psi}+\inner{\psi}{\widehat M\,pA\psi}
+  \;=\;p\,\inner{\psi}{(A^\ast\widehat M+\widehat MA)\psi},
+\]
+and $A^\ast=-A$ turns the bracket into $C=[\widehat M,A]$; dividing by $p$
+gives the stated formula. For selfadjointness,
+$C^\ast=(\widehat MA)^\ast-(A\widehat M)^\ast
+=A^\ast\widehat M-\widehat MA^\ast=\widehat MA-A\widehat M=C$. For a
+selfadjoint $C$ one has
+$\overline{\inner\psi{C\psi}}=\inner{C\psi}{\psi}=\inner\psi{C^\ast\psi}
+=\inner\psi{C\psi}$, so the scalar is fixed by the involution and lies in the
+fixed field $\Qp$. Integrality is closure of $\OK$ under sums and products,
+together with $\OK\cap\Qp=\Zp$.
+\end{proof}
+
+So the normalised gradient is a Hermitian form evaluated at a point of the
+sphere. Both of its arguments are Haar-random: $\psi$ is uniform on $\Sph_N$ by
+\Cref{lem:transitive}, and $C$ is determined by the block $U_B$. What remains
+is a finite count, which we now do by hand.
+
+\subsection{The counting lemma}
+
+Fix $N\ge2$ and a selfadjoint $\Gamma$ over $\FF_{p^2}$. For $c\in\FF_p$ put
+\[
+  \mathcal{N}_c \;=\;
+  \#\bigl\{u\in\FF_{p^2}^{N}\;:\;\inner uu=1,\ \inner{u}{\Gamma u}=c\bigr\}.
+\]
+
+\begin{definition}[Non-degeneracy]
+\label{def:nondeg}
+Say $\Gamma$ is \emph{$r$-non-degenerate} if it admits an orthonormal
+eigenbasis over $\FF_{p^2}$ with all eigenvalues in $\FF_p$, and no eigenvalue
+has multiplicity larger than $N-r$. Writing $m_{\max}$ for the largest
+eigenvalue multiplicity, the second condition reads $r\le N-m_{\max}$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:count}
+If $\Gamma$ is $r$-non-degenerate then for every $c\in\FF_p$
+\[
+  \left|\;\frac{\mathcal{N}_c}{|\widetilde\Sph_N|}\;-\;\frac1p\;\right|
+  \;\le\;10\,p^{\,1-r},
+  \qquad\text{and}\qquad
+  \bigl|\widetilde\Sph_N\bigr| \;=\; p^{2N-1}-(-1)^{N}p^{N-1}.
+\]
+\end{lemma}
+
+\begin{proof}
+Work in an orthonormal eigenbasis of $\Gamma$, with eigenvalues
+$\lambda_1,\dots,\lambda_N\in\FF_p$. The two constraints read
+$\sum_i\Nm(u_i)=1$ and $\sum_i\lambda_i\Nm(u_i)=c$, where now
+$\Nm:\FF_{p^2}\to\FF_p$, $\Nm(z)=z^{1+p}$. The fibres of $\Nm$ have sizes
+$w(0)=1$ and $w(s)=p+1$ for $s\ne0$, since $\Nm$ restricts to a surjection
+$\FF_{p^2}^\times\to\FF_p^\times$ with kernel of order $p+1$. Substituting
+$t_i=\Nm(u_i)$,
+\[
+  \mathcal{N}_c\;=\;\sum_{\substack{t\in\FF_p^{N}\\ \sum t_i=1,\ \sum\lambda_it_i=c}}
+  \ \prod_{i=1}^{N}w(t_i).
+\]
+Let $\chi$ be a non-trivial additive character of $\FF_p$ and detect the two
+constraints by $\frac1p\sum_{\alpha}\chi(\alpha(\cdot))$. Then
+\[
+  \mathcal{N}_c\;=\;\frac1{p^2}\sum_{\alpha,\beta\in\FF_p}
+  \chi(-\alpha-\beta c)\prod_{i=1}^{N}T(\alpha+\beta\lambda_i),
+  \qquad
+  T(s)=\sum_{t\in\FF_p}w(t)\chi(st).
+\]
+Direct evaluation gives $T(0)=1+(p+1)(p-1)=p^{2}$ and, for $s\ne0$,
+$T(s)=1+(p+1)\sum_{t\ne0}\chi(st)=1-(p+1)=-p$. Hence, writing
+$z(\alpha,\beta)=\#\{i:\alpha+\beta\lambda_i=0\}$,
+\[
+  \prod_iT(\alpha+\beta\lambda_i)\;=\;(p^{2})^{z}(-p)^{N-z}
+  \;=\;(-1)^{N-z}p^{\,N+z}.
+\]
+Split the double sum into three ranges.
+
+\textbf{Case $\alpha=\beta=0$.} Here $z=N$ and the term is $p^{2N}$.
+
+\textbf{Case $\beta=0$, $\alpha\ne0$.} Here $z=0$, and
+$\sum_{\alpha\ne0}\chi(-\alpha)=-1$; the total contribution is
+$-(-1)^{N}p^{N}$.
+
+\textbf{Case $\beta\ne0$.} For fixed $\beta\ne0$ the substitution
+$\lambda=-\alpha/\beta$ is a bijection on $\alpha$. It gives
+$\alpha+\beta\lambda_i=\beta(\lambda_i-\lambda)$, so $z=m(\lambda)$, the
+multiplicity of $\lambda$ in the spectrum, zero if $\lambda$ is not an
+eigenvalue; and $-\alpha-\beta c=\beta(\lambda-c)$. Summing over $\beta\ne0$
+gives $\sum_{\beta\ne0}\chi(\beta(\lambda-c))=p\delta_{\lambda,c}-1$, so this
+case contributes
+$\Sigma(c)=\sum_{\lambda\in\FF_p}(-1)^{N-m(\lambda)}p^{\,N+m(\lambda)}
+(p\delta_{\lambda,c}-1)$. Collecting,
+\begin{equation}
+\label{eq:collected}
+  p^{2}\mathcal{N}_c\;=\;p^{2N}-(-1)^{N}p^{N}+\Sigma(c).
+\end{equation}
+
+We first extract the sphere count. Summing~\eqref{eq:collected} over $c\in\FF_p$
+gives $\sum_c\mathcal{N}_c=|\widetilde\Sph_N|$ on the left, while on the right
+$\sum_c\Sigma(c)=\sum_\lambda(-1)^{N-m(\lambda)}p^{N+m(\lambda)}(p-p)=0$;
+therefore $p^{2}|\widetilde\Sph_N|=p^{2N+1}-(-1)^{N}p^{N+1}$, which is the
+stated formula. In particular
+$|\widetilde\Sph_N|\ge p^{2N-1}-p^{N-1}\ge\frac12p^{2N-1}$ for $N\ge2$, and
+$|\widetilde\Sph_N|/p=p^{2N-2}-(-1)^{N}p^{N-2}$.
+
+Now bound $\Sigma(c)$. At most $p$ values of $\lambda$ have $m(\lambda)=0$; for
+those the summand has absolute value at most $p^{N}\cdot p=p^{N+1}$ when
+$\lambda=c$ and at most $p^{N}$ otherwise, contributing at most
+$p^{N+1}+(p-1)p^{N}\le2p^{N+1}$ in total. At most $p$ values of $\lambda$ have
+$m(\lambda)\ge1$, and for those the summand is at most
+$p^{\,N+m_{\max}}\cdot p$ in absolute value, contributing at most
+$p^{\,N+m_{\max}+2}$. Hence, using $m_{\max}\ge1$,
+\[
+  \bigl|\,p^{2}\mathcal{N}_c-p^{2N}\,\bigr|
+  \;\le\;p^{N}+2p^{N+1}+p^{\,N+m_{\max}+2}
+  \;\le\;4\,p^{\,N+m_{\max}+2},
+\]
+that is $\mathcal{N}_c=p^{2N-2}+E$ with $|E|\le4p^{\,N+m_{\max}}$. Combining
+with $|\widetilde\Sph_N|/p=p^{2N-2}-(-1)^{N}p^{N-2}$,
+\[
+  \left|\mathcal{N}_c-\frac{|\widetilde\Sph_N|}{p}\right|
+  \;\le\;4p^{\,N+m_{\max}}+p^{\,N-2}\;\le\;5\,p^{\,N+m_{\max}},
+\]
+and dividing by $|\widetilde\Sph_N|\ge\frac12p^{2N-1}$ gives
+$10\,p^{\,m_{\max}-N+1}\le10\,p^{\,1-r}$.
+\end{proof}
+
+\begin{remark}[When the bound bites]
+\label{rem:bite}
+\Cref{lem:count} is vacuous for small $r$: the deviation bound $10p^{1-r}$
+exceeds $1$ unless $p^{\,r-1}>10$. Combined with the leading term $1/p$ in
+\Cref{thm:main}, the conclusion is non-trivial as soon as
+$p^{\,r-1}>10p/(p-1)$, which holds for $r\ge4$ when $p=3$, for $r\ge3$ when
+$p\ge11$, and for $r\ge2$ when $p\ge13$. In the regime of interest $r$ grows
+like $2^{n}$ (\Cref{ex:witness,rem:doubly}), so the condition is met from three
+qubits onward for every odd $p$.
+\end{remark}
+
+\begin{remark}[The splitting clause is a real restriction]
+\label{rem:notspectral}
+It is tempting to read the first clause of \Cref{def:nondeg} as an analogue of
+the complex spectral theorem, hence automatic. It is not. Over $\FF_{q^2}$ a
+Hermitian matrix can have eigenvalues outside the fixed field $\FF_q$. Indeed
+if $\Gamma v=\lambda v$ then
+\[
+  \lambda\inner vv=\inner v{\Gamma v}=\inner{\Gamma v}v=\bar\lambda\inner vv ,
+\]
+so $\lambda\ne\bar\lambda$ forces $\inner vv=0$; the same computation applied
+to two vectors of the same eigenspace shows that eigenspace is totally
+isotropic, and no orthonormal eigenbasis can exist. Concretely, take $q=3$ and
+$\FF_9=\FF_3(\iota)$ with $\iota^2=-1$, so that the involution is
+$x+\iota y\mapsto x-\iota y$ and $\Nm(x+\iota y)=x^2+y^2$. With $b=1+\iota$,
+which has $\Nm(b)=2$, the matrix
+\[
+  \Gamma\;=\;\begin{pmatrix}0&b\\ \bar b&0\end{pmatrix}
+  \;=\;\begin{pmatrix}0&1+\iota\\ 1-\iota&0\end{pmatrix}
+\]
+is Hermitian with characteristic polynomial $x^{2}-\Nm(b)=x^{2}+1$, whose roots
+$\pm\iota$ lie in $\FF_9\setminus\FF_3$. Its $\iota$-eigenvector is
+$(1+\iota,\iota)^{\mathsf T}$, of norm $2+1=0$.
+
+So \Cref{def:nondeg} restricts to those $\Gamma$ whose characteristic
+polynomial splits over $\FF_p$ with an orthonormal eigenbasis, and
+\Cref{thm:main} is conditional on that. The general case needs the
+classification of pencils of Hermitian forms over a finite field rather than a
+single diagonalisation; we have not carried it out, and we do not know whether
+the conclusion of \Cref{thm:main} survives without the hypothesis. This is the
+principal gap in the paper. What we can say is that the restricted class is not
+exotic: \Cref{ex:witness} exhibits a textbook observable generator pair inside
+it, with $r$ as large as the pigeonhole bound of \Cref{rem:doubly} allows.
+\end{remark}
+
+\subsection{Main result}
+
+\begin{theorem}[No barren plateaus]
+\label{thm:main}
+Let $p$ be odd, $K/\Qp$ unramified, $N=2^{n}$. Fix
+\begin{itemize}
+\item an integral observable $M=M^\ast$ and an integral generator
+  $A=-A^\ast$, entering the ansatz~\eqref{eq:ansatz} as $\exp_p(p\theta A)$;
+\item an admissible integral $\psi_0$;
+\item an arbitrary $U_B\in G_N$, and write $\widehat M=U_B^\ast MU_B$,
+  $C=[\widehat M,A]$ and $\Gamma=\widetilde C$;
+\end{itemize}
+and suppose $\Gamma$ is $r$-non-degenerate. Let $U_A$ be drawn from the Haar
+measure $\nu$ on $G_N$. Then
+\[
+  \Pr\Bigl[\;\padicnorm{\partial_\theta\loss}=p^{-1}\;\Bigr]
+  \;=\;\Pr\Bigl[\;\padicnorm{\nabla\loss}=1\;\Bigr]
+  \;\ge\;1-\frac1p-10\,p^{\,1-r} .
+\]
+That is, the gradient attains the largest absolute value any convergent
+$p$-adic ansatz permits (\Cref{rem:scale}), with a probability bounded below
+independently of the number of qubits $n$.
+\end{theorem}
+
+\begin{proof}
+By \Cref{lem:grad}, $\nabla\loss=\inner\psi{C\psi}\in\Zp$ with
+$\psi=U_A\psi_0$, so $\padicnorm{\nabla\loss}\le1$ with equality precisely when
+$v_p(\nabla\loss)=0$, that is when the residue
+$\inner{\tilde\psi}{\Gamma\tilde\psi}\in\FF_p$ is non-zero.
+
+The residue $\inner\psi{C\psi}\bmod p$ depends on $\psi$ only through
+$\tilde\psi$, and $\Gamma$ is fixed by hypothesis. By \Cref{lem:transitive},
+$\psi=U_A\psi_0$ is distributed according to the invariant measure on $\Sph_N$
+as $U_A$ ranges over $G_N$, so $\tilde\psi$ is uniform on $\widetilde\Sph_N$.
+Applying \Cref{lem:count} with $c=0$,
+\[
+  \Pr\bigl[\,v_p(\nabla\loss)\ge1\,\bigr]
+  \;=\;\frac{\mathcal{N}_0}{|\widetilde\Sph_N|}
+  \;\le\;\frac1p+10\,p^{\,1-r},
+\]
+and taking complements gives the claim. The identification of the two events in
+the statement is $\nabla\loss=p^{-1}\partial_\theta\loss$.
+\end{proof}
+
+\begin{corollary}[Random second block]
+\label{cor:randomUB}
+If instead $U_A$ and $U_B$ are drawn independently from $\nu$ and $\Gamma$ is
+$r$-non-degenerate for $\nu$-almost every $U_B$, the same bound holds.
+\end{corollary}
+
+\begin{proof}
+The bound of \Cref{thm:main} is uniform over the admissible $U_B$, so it
+survives averaging over $U_B$.
+\end{proof}
+
+Because \Cref{thm:main} takes a concrete pair $(M,A)$ as input, its hypothesis
+is something one can check rather than assume. Here is a pair that passes.
+
+% -----------------------------------------------------------------
+% The following example is not strictly required by the argument; it exists
+% to witness that the standing hypothesis of Thm 5.5 is satisfiable, with r
+% exponentially large. Delete freely if space is short.
+% -----------------------------------------------------------------
+\begin{example}[A witness with $r=2^{\,n-1}$]
+\label{ex:witness}
+Let $p\equiv3\pmod4$, so that $\mu=-1$ is a non-square unit and
+$K=\Qp(i)$ with $i^2=-1$, $\bar i=-i$. On $n$ qubits take the observable and
+generator
+\[
+  M\;=\;X_1\;=\;\begin{pmatrix}0&\Id\\ \Id&0\end{pmatrix},
+  \qquad
+  A\;=\;-\tfrac{i}{2}\bigl(\Id-Z_1\bigr)
+  \;=\;-i\begin{pmatrix}0&0\\ 0&\Id\end{pmatrix},
+\]
+blocks of size $2^{\,n-1}$; both are integral, since $2\in\Zp^\times$ for $p$
+odd, and $M^\ast=M$ while $A^\ast=-A$ because $\bar i=-i$. In words: measure
+Pauli $X$ on the first qubit and rotate the first qubit about $Z$. Take
+$U_B=\Id$ and $\psi_0=e_1$. Then
+\[
+  C\;=\;[M,A]\;=\;\begin{pmatrix}0&-i\Id\\ i\Id&0\end{pmatrix}\;=\;Y_1 ,
+\]
+the $p$-adic Pauli $Y$ on the first qubit, and $\Gamma=\widetilde C$ satisfies
+$\Gamma^2=\Id$. Its eigenvalues are therefore $\pm1\in\FF_p$, and since
+$\Gamma$ has trace $0$ each occurs with multiplicity $2^{\,n-1}$. The
+eigenspaces are $E_{\pm}=\{(x,\pm ix)^{\mathsf T}\}$ and carry the
+non-degenerate forms $\inner{(x,\pm ix)}{(z,\pm iz)}=2\inner xz$, so each has
+an orthonormal basis and $\Gamma$ is unitarily diagonalisable. Hence
+$m_{\max}=2^{\,n-1}$ and $\Gamma$ is $r$-non-degenerate with
+\[
+  r\;=\;N-m_{\max}\;=\;2^{\,n-1},
+\]
+so \Cref{thm:main} gives $\Pr[\padicnorm{\partial_\theta\loss}=p^{-1}]\ge
+1-p^{-1}-10\,p^{\,1-2^{n-1}}$. At $n=10$ and $p=3$ the correction term is
+smaller than $3^{-500}$.
+\end{example}
+
+\begin{corollary}
+\label{cor:deg}
+Assume $\Gamma$ admits an orthonormal eigenbasis with eigenvalues in $\FF_p$.
+Then $\Gamma$ fails to be $1$-non-degenerate if and only if $\widehat M$ and
+$A$ commute modulo $p$.
+\end{corollary}
+
+\begin{proof}
+Failure of $1$-non-degeneracy means $m_{\max}=N$, that is $\Gamma=\lambda\Id$
+for some $\lambda\in\FF_p$. Being a commutator, $\Gamma$ has trace zero, so
+$N\lambda=0$ in $\FF_p$; since $N=2^{n}$ and $p$ is odd, $p\nmid N$ and
+therefore $\lambda=0$. Thus $\Gamma=0$, which is exactly
+$[\widehat M,A]\equiv0\bmod\mm$. The converse is immediate.
+\end{proof}
+
+\begin{corollary}[Contrast with the complex case]
+\label{cor:contrast}
+For a complex $n$-qubit circuit whose blocks form $2$-designs,
+$\Pr[\,|\partial_\theta\loss|\ge\varepsilon\,]\le O(2^{-n}\varepsilon^{-2})$ by
+Chebyshev's inequality applied to the mean-zero, variance-$O(2^{-n})$ gradient
+of~\cite{Mc18}. Over $K$, by \Cref{thm:main}, the gradient attains its
+\emph{maximal} attainable absolute value with probability bounded below
+uniformly in $n$.
+\end{corollary}
+
+\begin{remark}[How large can $r$ be, and how large is it typically]
+\label{rem:doubly}
+Two bounds frame the answer. Since $\Gamma$ has $N$ eigenvalues, all in the
+$p$-element field $\FF_p$, pigeonhole gives $m_{\max}\ge\lceil N/p\rceil$ and
+hence
+\[
+  r\;\le\;N-\lceil N/p\rceil\;\le\;N\Bigl(1-\frac1p\Bigr).
+\]
+A simple spectrum is thus impossible once $N>p$, which is the regime
+$N=2^{n}$ reaches immediately; the correct picture is not ``$m_{\max}=O(1)$''
+but ``the $N$ eigenvalues are spread over the $p$ available values''. If they
+are spread evenly, $m_{\max}\approx N/p$ and $r\approx N(1-1/p)$. The witness
+of \Cref{ex:witness} spreads them over two values and already achieves
+$r=N/2$.
+
+Either way $r=\Theta(N)=\Theta(2^{n})$, so the correction term $10p^{1-r}$ is
+of order $p^{-2^{n}}$: doubly exponentially small in the qubit count. The
+theorem is sharpest in exactly the regime -- many qubits, expressive circuits
+-- where the complex barren plateau is most severe.
+\end{remark}
+
+% =================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What replaces the plateau}
+
+The trainability obstruction does not vanish; it changes shape. In the complex
+theory it is a \emph{measure} phenomenon: the bad set has full measure as
+$n\to\infty$, and no amount of care in choosing $M$ and $A$ escapes it. Over
+$K$, by \Cref{cor:deg}, the bad set is the locus where the observable and the
+generator commute modulo $p$, cut out by the vanishing of a single matrix
+commutator over $\FF_{p^2}$.
+
+That locus is small but not null, and it is worth being precise about which.
+By \Cref{lem:pushforward} the set $\{U_B:[\widehat M,A]\equiv0\bmod p\}$ is a
+union of congruence classes, so it is open and closed in $G_N$ and its measure
+is the proportion
+\[
+  \frac{\#\{g\in\Uni_N(\FF_{p^2}):[\,g^\ast\widetilde Mg,\widetilde A\,]=0\}}
+       {|\Uni_N(\FF_{p^2})|},
+\]
+which is strictly positive whenever it is non-empty. It is a proper subvariety
+of the level-one reduction, hence of measure $O(p^{-1})$ by a Schwartz--Zippel
+count, but not of measure zero -- a distinction with no complex analogue, and
+one that a finite-field ensemble makes unavoidable. The obstruction is
+confined to a critical subvariety rather than spread across the landscape,
+which matches the bifurcation structure Z\'u\~niga-Galindo obtains for very
+deep classical $p$-adic networks~\cite{ZG26crit}, where the transition is
+between a unique network state and infinitely many rather than between a flat
+and a structured landscape.
+
+There is also a design lesson, and it runs opposite to the complex one. In the
+complex setting expressibility hurts: the more nearly the ansatz forms a
+$2$-design, the flatter the landscape~\cite{Ho22}. \Cref{thm:main} inverts
+this. Haar-randomness over $G_N$ is what \emph{produces} maximal gradients,
+because a Haar-random residue $\inner{\tilde\psi}{\Gamma\tilde\psi}$ in $\FF_p$
+is non-zero with probability close to $1-p^{-1}$; the danger is
+under-randomised circuits whose commutators sit on the critical locus.
+Choosing $\widehat M$ and $A$ so that they visibly fail to commute modulo $p$
+is a concrete, checkable design criterion with no complex counterpart, and
+\Cref{ex:witness} shows the most ordinary choice already satisfies it.
+
+\subsection{Does a maximal gradient imply trainability?}
+
+Not by itself. \Cref{thm:main} says the leading digit of the gradient is
+generically non-zero, so a step $\theta\leftarrow\theta-\eta\nabla\loss$ with
+$\padicnorm\eta=1$ moves the leading digit of the parameter. Convergence is
+governed by a separate and stringent condition. $p$-adic gradient descent on a
+quadratic loss with Hessian $H$ contracts at rate $\opnorm{\Id-\eta H}$, and
+because the value group is discrete this is less than $1$ only when every entry
+of $\Id-\eta H$ lies in $p\Zp$. For a \emph{scalar} step size that says
+$H\equiv\eta^{-1}\Id\bmod p$: the Hessian must be a scalar matrix modulo $p$,
+which is a far stronger demand than the real-analytic condition
+$0<\eta<2/\lambda_{\max}$ it replaces. With a matrix preconditioner $P$ in
+place of $\eta$ the requirement relaxes to invertibility of $H$ modulo $p$,
+which is generic.
+
+When contraction does hold, convergence is ultra-fast: the error contracts by
+at least $p^{-1}$ per step, so $O(\log_p(1/\varepsilon))$ iterations suffice.
+Our result removes gradient concentration from the list of obstructions. It
+does not establish trainability, and the conditioning question is the natural
+next one.
+
+\subsection{Why a model with no hardware?}
+\label{sec:why}
+
+No $p$-adic quantum computer exists, and none is on any roadmap. It is worth
+saying what a result about such a model is for.
+
+The first use is diagnostic, and it concerns the complex theory rather than
+this one. Barren plateaus are usually discussed as a phenomenon of quantum
+circuits, attributed to entanglement, to depth, or to the expressibility of the
+ansatz. The analysis above keeps the circuits, the observable, the ansatz shape
+and the qubit count fixed, changes only the field the amplitudes live in, and
+the phenomenon disappears. Whatever else barren plateaus are, they are not a
+consequence of unitarity or of Hilbert-space dimension alone: the load is
+carried by the compactness of the unitary group and by the Archimedean absolute
+value, two properties of $\mathbb{C}$ that the physics never singles out. This
+is a statement about the complex setting, and it suggests where a mitigation
+has to bite. Restricting the ensemble so that it is not Haar-typical in
+the full unitary group -- the mechanism behind structured ansatz design and
+warm starts -- acts on an ingredient the argument genuinely needs. We do not
+read this as a ranking of complex-side mitigations: the cost-function route
+of~\cite{Ce21} attacks the same argument at a different point, and nothing here
+says which attack is more effective.
+
+The second use is methodological. Replacing $t$-design moment combinatorics by
+character sums over finite unitary groups is not specific to the gradient.
+\Cref{lem:pushforward} reduces \emph{any} Haar moment over $G_N$ to counting in
+$\Uni_N(\OK/\mm^{k})$, so second-moment questions in this model -- concentration
+of expectation values, the distribution of overlaps, the behaviour of a
+$p$-adic kernel -- become finite computations of the same shape. The design
+criterion the theorem yields has the same character: $[\widehat M,A]\not\equiv0
+\bmod p$ is verified by reducing two integer matrices and multiplying them,
+with no sampling and no asymptotics.
+
+What the result does not do should be equally clear. It predicts nothing about
+any existing device, and by \Cref{rem:nosampling} it cannot be checked by the
+empirical protocol that produces barren-plateau plots in the complex setting;
+the form of evidence that is available instead is set out under \emph{No
+experiments} in \Cref{sec:limitations}. An application, if
+one comes, would come through the classical side of the same programme, where
+$p$-adic models are used because taxonomies, phylogenies and other hierarchical
+data are ultrametric to begin with~\cite{Kh98,ZuGa22,ZG24dnn,Ma25}. The
+contribution here is to that programme's theory, not to its hardware.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+We state the boundaries of the result plainly.
+
+\begin{itemize}
+\item \textbf{Level one only.} \Cref{thm:main} controls
+  $\Pr[v_p(\nabla\loss)\ge1]$. The full distribution of $v_p(\nabla\loss)$
+  requires \Cref{lem:count} at level $\mm^{k}$ for $k>1$, over the finite rings
+  $\OK/\mm^{k}$. \Cref{lem:pushforward} supplies the reduction; the character
+  sum has not been carried out. We expect $\Pr[v_p\ge k]=p^{-k}(1+o(1))$, hence
+  $\mathbb{E}[v_p(\nabla\loss)]=O(1)$, but we have not proved it.
+\item \textbf{The splitting hypothesis.} This is the most serious limitation.
+  By \Cref{rem:notspectral} the eigenbasis clause of \Cref{def:nondeg} is a
+  genuine restriction and not an automatic consequence of Hermitian symmetry:
+  over a finite field a Hermitian matrix may have eigenvalues outside the fixed
+  field. \Cref{thm:main} therefore applies to those observable--generator pairs
+  whose commutator splits, and we do not know what happens outside that class.
+  \Cref{ex:witness} shows the class is non-empty and contains natural pairs;
+  it does not show the class is large.
+\item \textbf{Standing assumptions.} $p$ odd and $K/\Qp$ unramified. The
+  ramified and $p=2$ cases change the residue field and the norm group and are
+  not covered; $p=2$ is also the case in which the $p$-adic Hadamard gate does
+  not exist~\cite{AMP23}.
+\item \textbf{Single parameter, two blocks.} We differentiate one parameter in
+  the two-block ansatz~\eqref{eq:ansatz}, following~\cite{Mc18}.
+  Shallow-circuit and local-cost refinements in the manner of~\cite{Ce21} are
+  open, as is the behaviour of the full parameter vector.
+\item \textbf{No experiments.} By \Cref{rem:nosampling} the $p$-adic model
+  admits no sampling-based readout, so the usual empirical protocol does not
+  transfer. A meaningful numerical companion would be exact arithmetic in
+  $\OK/\mm^{k}$ for small $n$ and $p$, verifying \Cref{lem:count} by
+  enumeration; we regard this as the most useful immediate follow-up.
+\end{itemize}
+
+% =================================================================
+\section{Related work}
+\label{sec:related}
+
+Barren plateaus were identified in~\cite{Mc18} and refined
+in~\cite{Ce21,Ho22}; all of that analysis is Archimedean. The $p$-adic quantum
+formalism we use is that of Aniello, Mancini and
+Parisi~\cite{AMP23,AMP24,AMP23trace}, with the tensor product
+of~\cite{Mu25tensor} and the qubit and gate constructions of Svampa and
+co-authors~\cite{SMW22qub,SLMW26gates}; the exact algebraic sense of
+universality goes back to Barenco et al.~\cite{Ba95}. Haar measure on $p$-adic
+rotation groups was constructed in~\cite{AMP24haar} as an inverse limit of
+measure spaces; our \Cref{lem:pushforward} is in the same spirit, and
+\Cref{prop:noncompact} explains why such constructions must target compact
+subgroups rather than the full unitary group, and hence why
+\Cref{qst:plateau} is posed over $G_N$. On the learning side, classical $p$-adic neural networks
+go back to~\cite{Kh98} and have been developed
+extensively~\cite{ZuGa22,ZG24dnn,ZG26crit,Ma25}; the quantum bridge is so far
+represented by the hierarchical quantum cellular network of~\cite{ZGZ26qnn}.
+The generalised parameter-shift rules of~\cite{Cr19,Wi22} are the natural route
+to a $p$-adic gradient estimator on the finite torsion group $\mu(K)$, which
+our analytic $\exp_p$ formulation sidesteps but a hardware realisation would
+need.
+
+% =================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+Barren plateaus are a theorem about the Archimedean absolute value. Replacing
+$\mathbb{C}$ by a quadratic extension of $\Qp$ removes them, at least on the
+class of circuits whose observable--generator commutator splits over $\FF_p$.
+There the gradient of a $p$-adic variational circuit generically attains the
+largest absolute value the convergence radius allows, uniformly in the qubit
+count, and the flat locus shrinks from a full-measure set to the subvariety
+where the observable commutes with the generator modulo $p$. Whether the same
+holds off that class is the first question we would ask next.
+
+Getting there required two corrections and one substitution. The ensemble had
+to be corrected: the full $p$-adic unitary group is non-compact and admits no
+Haar probability measure, so the question posed over it has no answer.
+The scale had to be corrected: every convergent $p$-adic ansatz confines its
+one-parameter subgroups to the principal congruence subgroup, so $p^{-1}$, not
+$1$, is what ``maximal gradient'' means. And the missing $t$-design
+combinatorics had to be replaced by counting in finite unitary groups, a
+substitution that appears reusable for other second-moment questions in
+$p$-adic quantum machine learning. What remains is the conditioning of the
+optimiser, which is now the binding constraint on trainability.
+
+\bibliography{references}
+
+\end{document}
