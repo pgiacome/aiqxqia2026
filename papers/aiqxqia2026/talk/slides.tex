@@ -1,0 +1,402 @@
+% ---------------------------------------------------------------
+% Talk: p-adic Variational Quantum Circuits Have No Barren Plateaus
+% AIQxQIA 2026, Perugia -- Thursday 8 October 2026
+% Session "AI for Quantum - 2", 15-20 minute slot.
+% Author: Piero Giacomelli
+%
+% Compile: pdflatex slides && pdflatex slides
+% ---------------------------------------------------------------
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usetheme{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{appendixnumberbeamer}
+
+\definecolor{accent}{HTML}{1F6FB2}
+\setbeamercolor{frametitle}{bg=accent}
+\setbeamercolor{alerted text}{fg=accent}
+% keep the title page inside the slide with the full title on it
+\setbeamerfont{title}{size=\large,series=\bfseries}
+
+% ---- notation, matching the paper ----
+\newcommand{\Qp}{\mathbb{Q}_p}
+\newcommand{\Zp}{\mathbb{Z}_p}
+\newcommand{\OK}{\mathcal{O}}
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\Uni}{\mathrm{U}}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\padicnorm}[1]{\left|#1\right|_p}
+\newcommand{\inner}[2]{\langle #1, #2\rangle}
+
+\title{$p$-adic Variational Quantum Circuits Have No Barren Plateaus}
+\author{Piero Giacomelli}
+\institute{Tenax SPA, Verona, Italy}
+\date{AIQxQIA 2026 \, | \, Perugia \, | \, 8 October 2026}
+
+\begin{document}
+
+\maketitle
+
+% =================================================================
+\begin{frame}{The obstruction we all work around}
+  For a variational circuit $U(\theta)$ and observable $M$,
+  \[
+    \loss(\theta)=\inner{U(\theta)\psi_0}{M\,U(\theta)\psi_0}.
+  \]
+
+  \alert{McClean et al.\ (2018):} if the ansatz forms a unitary $2$-design,
+  \[
+    \mathbb{E}[\partial_\theta\loss]=0,
+    \qquad
+    \mathrm{Var}[\partial_\theta\loss]=O(2^{-n}).
+  \]
+
+  \vspace{0.5em}
+  The landscape is flat almost everywhere; the shot count to resolve a descent
+  direction grows exponentially in the qubit count.
+
+  \vspace{0.5em}
+  Mitigations attack the \emph{circuit}: initialisation, local cost functions,
+  shallow or structured ansätze. Every one of them keeps the scalars
+  $\mathbb{C}$.
+\end{frame}
+
+% =================================================================
+\begin{frame}{What does the theorem actually use?}
+  Three ingredients, and none of them is quantum mechanics:
+
+  \vspace{0.6em}
+  \begin{enumerate}
+    \item a \alert{compact} ensemble, hence a Haar \emph{probability} measure;
+    \item moment data from unitary \alert{$t$-designs};
+    \item ``small'' in the \alert{Archimedean} absolute value.
+  \end{enumerate}
+
+  \vspace{0.8em}
+  All three are facts about $\mathbb{C}$.
+
+  \begin{center}
+    \emph{So: what happens if we change the field?}
+  \end{center}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Changing the scalars}
+  Following Aniello, Mancini and Parisi, rebuild the kinematics over a
+  quadratic extension $K$ of the $p$-adic field $\Qp$:
+
+  \vspace{0.4em}
+  \begin{itemize}
+    \item states are vectors in $K^{N}$, $N=2^{n}$;
+    \item gates are unitaries for a $K$-valued Hermitian form;
+    \item the geometry is \alert{ultrametric}:
+      $\padicnorm{x+y}\le\max\{\padicnorm{x},\padicnorm{y}\}$.
+  \end{itemize}
+
+  \vspace{0.6em}
+  Why anyone builds this: ultrametric geometry is the intrinsic geometry of
+  \alert{hierarchical data} --- taxonomies, phylogenies, file systems.
+
+  \vspace{0.4em}
+  The pieces exist already: a $p$-adic qubit, a tensor product, a universal
+  gate set, a first quantum neural network.
+\end{frame}
+
+% =================================================================
+\begin{frame}{Three facts, and that is all the $p$-adics you need}
+  \begin{block}{1. Small means divisible}
+    $\padicnorm{x}=p^{-v_p(x)}$, where $v_p$ counts factors of $p$.
+    At $p=3$: $\ \padicnorm{18}=1/9$, because $18=2\cdot3^{2}$.
+  \end{block}
+
+  \begin{block}{2. The scale is discrete}
+    Values live in $p^{\mathbb{Z}}$. A gradient is a unit, or divisible by $p$,
+    or by $p^{2}$ --- nothing in between. No continuum of ``slightly small''.
+  \end{block}
+
+  \begin{block}{3. Sums do not grow}
+    A sum is as large as its largest term, \emph{unless} leading digits cancel
+    --- and that is a condition modulo $p$: finite and checkable.
+  \end{block}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Asking the question correctly}
+  $\mathrm{Var}=O(2^{-n})$ has no $p$-adic meaning. The faithful translation
+  asks how often the gradient is \emph{as large as it can be}.
+
+  \begin{block}{Question}
+    Let $G_N$ be the group of $N\times N$ unitaries with entries in the ring of
+    integers $\OK$, with Haar probability measure $\nu$. For integral $M=M^*$,
+    $A=-A^*$, and
+    \[
+      U(\theta)=U_B\,\exp_p(p\,\theta A)\,U_A ,
+      \qquad \theta\in\Zp ,
+    \]
+    we always have $\padicnorm{\partial_\theta\loss}\le p^{-1}$.
+    \medskip
+
+    With $U_A$ drawn from $\nu$: does
+    $\Pr\bigl[\padicnorm{\partial_\theta\loss}=p^{-1}\bigr]$ stay bounded away
+    from $0$ as $n\to\infty$, and for which pairs $(M,A)$?
+  \end{block}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Surprise 1: the usual ensemble does not exist}
+  \begin{alertblock}{Proposition}
+    $\Uni(K^{N})$ is \emph{non-compact} for every $N\ge2$.
+  \end{alertblock}
+
+  At $p=3$ there is an explicit unbounded family of unitaries. The reason is
+  structural: over a local field the form $\sum\bar z_iz_i$ is isotropic, and
+  compactness in the complex case came from \emph{positivity}, which the
+  $p$-adic model gives up.
+
+  \vspace{0.5em}
+  No Haar probability measure $\Rightarrow$ ``Haar-random circuit'' is
+  meaningless $\Rightarrow$ the plateau question, posed over the full group,
+  has no answer.
+
+  \vspace{0.5em}
+  \alert{Fix:} the integral unitary group $G_N=\Uni_N(\OK)$ --- compact, and it
+  contains every circuit built from the known $p$-adic gate sets (Pauli, CNOT,
+  $\mathrm{SO}(3)_p$ gates, Hadamard when $\sqrt2\in K$).
+\end{frame}
+
+% =================================================================
+\begin{frame}{Surprise 2: the benchmark is $p^{-1}$, not $1$}
+  The series $\exp_p(X)$ converges only for $\|X\|<p^{-1/(p-1)}$ --- and
+  because the value group is discrete, that is \emph{equivalent} to
+  $\|X\|\le p^{-1}$.
+
+  \vspace{0.5em}
+  So every convergent ansatz has
+  $\exp_p(\theta X)\equiv\Id \pmod{p}$: one-parameter subgroups sit inside the
+  principal congruence subgroup, and
+  \[
+    \padicnorm{\partial_\theta\loss}\;\le\;p^{-1}
+    \qquad\text{always.}
+  \]
+
+  \vspace{0.3em}
+  ``The gradient is a $p$-adic unit'' asks for something \alert{no convergent
+  circuit can deliver}. The factor $p$ in $\exp_p(p\theta A)$ is not a
+  normalisation we chose --- it is the whole content of the convergence
+  condition.
+\end{frame}
+
+% =================================================================
+\begin{frame}{The missing $t$-design combinatorics are not needed}
+  Compactness of $G_N$ comes with a filtration:
+  \[
+    G_N \;\longrightarrow\; \Uni_N(\OK/p^{k})
+    \;\longrightarrow\;\cdots\;\longrightarrow\;
+    \Uni_N(\FF_{p^{2}}).
+  \]
+
+  \begin{itemize}
+    \item Haar averages over $G_N$ push forward to \alert{uniform counting} on
+      finite unitary groups.
+    \item Haar-random states push forward to the uniform measure on a finite
+      Hermitian sphere.
+    \item At level one the gradient's leading digit is
+      $\inner{\tilde\psi}{\Gamma\tilde\psi}\in\FF_p$, a
+      \alert{character sum} we evaluate in closed form.
+  \end{itemize}
+
+  \vspace{0.4em}
+  Counting in finite groups replaces the moment combinatorics the complex
+  theory gets from $t$-designs.
+\end{frame}
+
+% =================================================================
+\begin{frame}{Main result}
+  \begin{alertblock}{Theorem}
+    Let $\Gamma$ be the commutator $[\,U_B^{*}MU_B,\,A\,]$ reduced modulo $p$.
+    If $\Gamma$ splits over $\FF_p$ with no eigenvalue of multiplicity above
+    $N-r$, then
+    \[
+      \Pr\Bigl[\padicnorm{\partial_\theta\loss}=p^{-1}\Bigr]
+      \;\ge\;1-\frac1p-10\,p^{\,1-r}.
+    \]
+  \end{alertblock}
+
+  \vspace{0.3em}
+  The bound does \alert{not depend on $n$}. And $r=\Theta(2^{n})$ generically,
+  so the correction is \emph{doubly} exponentially small exactly where the
+  complex plateau is worst.
+\end{frame}
+
+% =================================================================
+\begin{frame}{Side by side}
+  \begin{center}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+     & \textbf{Complex} & \textbf{$p$-adic} \\
+    \midrule
+    Ensemble        & $\Uni(2^{n})$, compact      & full group non-compact; use $G_N$ \\
+    Moments         & unitary $t$-designs         & character sums over $\Uni_N(\FF_{p^2})$ \\
+    Gradient        & $\mathrm{Var}=O(2^{-n})$    & $\Pr[\text{maximal}]\ge1-p^{-1}-10p^{1-r}$ \\
+    Scaling in $n$  & exponential decay           & none \\
+    Bad set         & full measure as $n\to\infty$& locus $[\widehat M,A]\equiv0 \bmod p$ \\
+    Expressibility  & more expressive, flatter    & more random, \alert{larger} gradients \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \vspace{0.6em}
+  The last row is the one to remember: over $K$, randomness is what
+  \emph{produces} large gradients.
+\end{frame}
+
+% =================================================================
+\begin{frame}{A witness you would actually write down}
+  Take $p\equiv3\bmod4$, so $K=\Qp(i)$. On $n$ qubits:
+  \[
+    M=X_1,
+    \qquad
+    A=-\tfrac{i}{2}\bigl(\Id-Z_1\bigr) .
+  \]
+  In words: \emph{measure Pauli $X$ on the first qubit, rotate the first qubit
+  about $Z$.}
+
+  \vspace{0.5em}
+  Then $C=[M,A]=Y_1$, the hypothesis holds, and
+  $r=2^{\,n-1}$.
+
+  \vspace{0.5em}
+  At $n=10$, $p=3$ the correction term is smaller than $3^{-500}$:
+  \[
+    \Pr\bigl[\text{gradient maximal}\bigr]\;\ge\;1-\tfrac13-3^{-500}.
+  \]
+\end{frame}
+
+% =================================================================
+\begin{frame}{What replaces the plateau}
+  The obstruction does not vanish --- it changes shape.
+
+  \begin{itemize}
+    \item \textbf{Complex:} a \emph{measure} phenomenon. The bad set has full
+      measure as $n\to\infty$; no choice of $M$ and $A$ escapes it.
+    \item \textbf{$p$-adic:} a \emph{locus}. The bad set is exactly
+      $[\,\widehat M,A\,]\equiv0\bmod p$ --- check it by reducing two integer
+      matrices and multiplying them.
+  \end{itemize}
+
+  \vspace{0.5em}
+  It is small but \alert{not null}: a clopen union of congruence classes of
+  measure $O(p^{-1})$. Positive measure, a distinction the complex theory never
+  has to make.
+
+  \vspace{0.5em}
+  \alert{Design criterion:} choose $\widehat M$ and $A$ that visibly fail to
+  commute modulo $p$.
+\end{frame}
+
+% =================================================================
+\begin{frame}{What this does \emph{not} say}
+  \begin{itemize}
+    \item \textbf{The splitting hypothesis is real.} Over a finite field a
+      Hermitian matrix may have eigenvalues outside the fixed field --- we give
+      a $2\times2$ counterexample over $\FF_9$. Outside that class: open.
+    \item \textbf{Level one only.} We control $\Pr[v_p(\nabla\loss)\ge1]$, not
+      the full valuation distribution.
+    \item \textbf{Standing assumptions.} $p$ odd, $K/\Qp$ unramified, one
+      parameter in a two-block ansatz.
+    \item \textbf{No hardware.} No device computes over $K$. And there is no
+      Monte Carlo readout: $p$-adic probabilities are not in $[0,1]$, so
+      readout is algebraic, digit by digit.
+  \end{itemize}
+\end{frame}
+
+% =================================================================
+\begin{frame}{So why care about a model with no hardware?}
+  \begin{enumerate}
+    \item \alert{It is a diagnostic about the complex theory.} The plateau
+      survives every change we make to the \emph{circuit}, and does not survive
+      the change we make to the \emph{field}. That locates the hypothesis a
+      mitigation has to attack: concentration in the Archimedean absolute
+      value.
+    \item \alert{It hands over a checkable criterion.} Non-commutation modulo
+      $p$ is a finite test, not an asymptotic statement.
+    \item \alert{The machinery is reusable.} Haar $\to$ counting in finite
+      unitary groups should serve other second-moment questions.
+  \end{enumerate}
+\end{frame}
+
+% =================================================================
+\begin{frame}[standout]
+  Barren plateaus are a theorem about the \\ Archimedean absolute value.
+
+  \vspace{0.8em}
+  Change the field and they go.
+
+  \vspace{1.2em}
+  \small Piero Giacomelli \, | \, Tenax SPA \, | \, pgiacome@gmail.com
+\end{frame}
+
+% =================================================================
+\appendix
+
+\begin{frame}{Backup: non-compactness at $p=3$}
+  For $N=2$ the form $\bar z_1z_1+\bar z_2z_2$ is isotropic over $K$: there is
+  a non-zero vector of norm zero. Unitary groups of isotropic Hermitian forms
+  over a local field are non-compact.
+
+  \vspace{0.5em}
+  Concretely at $p=3$ one exhibits unitaries whose entries have arbitrarily
+  large absolute value --- the group is unbounded, so no Haar \emph{probability}
+  measure exists on it. Restricting to integral entries is what restores
+  compactness.
+\end{frame}
+
+\begin{frame}{Backup: the counting lemma}
+  For $\Gamma$ selfadjoint over $\FF_{p^{2}}$ and $c\in\FF_p$, let
+  \[
+    \mathcal{N}_c=\#\{u : \inner uu=1,\ \inner u{\Gamma u}=c\}.
+  \]
+  If $\Gamma$ is $r$-non-degenerate, then
+  \[
+    \Bigl|\tfrac{\mathcal{N}_c}{|\widetilde{\mathbb{S}}_N|}-\tfrac1p\Bigr|
+    \le 10\,p^{\,1-r},
+    \qquad
+    |\widetilde{\mathbb{S}}_N| = p^{2N-1}-(-1)^{N}p^{N-1}.
+  \]
+  The value $c=0$ is the barren-plateau case: the leading digit of the gradient
+  vanishes.
+\end{frame}
+
+\begin{frame}{Backup: why the splitting hypothesis is not free}
+  Over $\FF_9$, with $\iota^{2}=-1$:
+  \[
+    \Gamma=\begin{pmatrix}0 & 1+\iota\\ 1-\iota & 0\end{pmatrix},
+    \qquad
+    \chi_\Gamma(x)=x^{2}+1 .
+  \]
+  The roots are $\pm\iota\in\FF_9\setminus\FF_3$: Hermitian, but not
+  diagonalisable over the fixed field.
+
+  \vspace{0.5em}
+  Closing this gap needs the classification of \emph{pencils} of Hermitian
+  forms over a finite field --- the main open follow-up.
+\end{frame}
+
+\begin{frame}{Backup: how large can $r$ be?}
+  $\Gamma$ has $N=2^{n}$ eigenvalues in a $p$-element field, so pigeonhole
+  gives $m_{\max}\ge\lceil N/p\rceil$ and
+  \[
+    r\;\le\;N\Bigl(1-\tfrac1p\Bigr).
+  \]
+  A simple spectrum is impossible once $N>p$. Spread evenly,
+  $r\approx N(1-1/p)$; the witness of the talk achieves $r=N/2$.
+
+  \vspace{0.5em}
+  Either way $r=\Theta(2^{n})$, so $10p^{1-r}$ is of order $p^{-2^{n}}$.
+\end{frame}
+
+\end{document}
