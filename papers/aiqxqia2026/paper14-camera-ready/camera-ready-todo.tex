@@ -1,0 +1,130 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyvrb}
+
+\newlist{todo}{itemize}{2}
+\setlist[todo]{label=$\square$,leftmargin=2em,itemsep=2pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\title{AIQxQIA 2026 --- Paper 14 Camera-Ready\\
+  \large To-do list for Monday, 5 October 2026}
+\author{Piero Giacomelli}
+\date{Prepared 4 October 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\textbf{Paper:} \emph{$p$-adic Variational Quantum Circuits Have No Barren
+Plateaus} (EasyChair id 14).\\
+\textbf{Source of these instructions:} email ``AIQxQIA 2026 -- Camera-ready
+instructions'' from\\ \texttt{aiqxqia2026@easychair.org}, 14 September 2026.
+Angelo Oddi pointed back to the same email on 30 September.\\
+\textbf{Working folder:}
+\texttt{papers/aiqxqia2026/paper14-camera-ready/}
+
+\section*{Status as of 4 October}
+\begin{itemize}[itemsep=1pt]
+  \item[\checkmark] \texttt{ceurart} one-column template.
+  \item[\checkmark] Title in capitalized style.
+  \item[\checkmark] \verb|\copyrightyear{2026}| and the CC BY 4.0
+    \verb|\copyrightclause| match the email.
+  \item[\checkmark] \verb|\conference{...}| footnote matches the email
+    word for word.
+  \item[\checkmark] \texttt{paper14-camera-ready.zip} holds the sources,
+    \texttt{.bbl}, class, style and final \texttt{main.pdf}, and rebuilds
+    from a clean extract.
+  \item[$\times$] \textbf{The signed copyright form is missing.} This is the
+    only thing blocking the upload.
+  \item[$\times$] Nothing has been uploaded to SharePoint yet.
+  \item[$\times$] The AIxIA 2026 registration payment is still pending
+    (membership order, then the green form).
+\end{itemize}
+
+\section*{Step 1 --- Fill in the copyright form (NTP variant)}
+Use the \textbf{NTP} form, because the paper contains no third-party
+material:\\ \texttt{ceur-author-agreement-ccby-ntp.pdf}, already in the working folder (version 1.08-ntp, 2026-09-03). Fill in \emph{every} field.
+
+\begin{todo}
+  \item \textbf{Contribution title:} $p$-adic Variational Quantum Circuits
+    Have No Barren Plateaus
+  \item \textbf{Authored by:} Piero Giacomelli
+  \item \textbf{Corresponding author name:} Piero Giacomelli
+  \item \textbf{Address:} fill in by hand
+  \item \textbf{Affiliation:} Tenax SPA, Verona, Italy
+  \item \textbf{Email:} pgiacome@gmail.com
+  \item \textbf{Name and year of the event:} AIQxQIA 2026: 4th International
+    Workshop on AI for Quantum and Quantum for AI
+  \item \textbf{Editors of the proceedings:} Miguel Angel Gonzalez, Corrado
+    Loglisci, Angelo Oddi, Riccardo Rasconi, Ramiro Varela Arias
+\end{todo}
+
+\section*{Step 2 --- Sign it by hand and scan it}
+\begin{todo}
+  \item Print the completed form.
+  \item Sign it \textbf{with a pen}. \textcolor{red}{Do NOT sign it digitally}
+    (no Adobe Reader signature).
+  \item Scan the \textbf{entire page} to PDF.
+  \item Save the scan as
+    \texttt{paper14-camera-ready/copyright-form-signed.pdf}.
+  \item Check that the scan is legible and that every field is filled in.
+\end{todo}
+
+\section*{Step 3 --- Rebuild the zip with the form included}
+The zip must contain the LaTeX sources with \texttt{main.tex} at the top
+level, the final PDF and the signed form. From the repository root:
+
+\begin{Verbatim}[frame=single,fontsize=\small]
+cd papers/aiqxqia2026/paper14-camera-ready
+rm -f paper14-camera-ready.zip
+zip paper14-camera-ready.zip main.tex references.bib main.bbl \
+    ceurart.cls elsarticle-num-names.bst cc-by.pdf main.pdf \
+    copyright-form-signed.pdf
+unzip -l paper14-camera-ready.zip     # expect 8 files
+\end{Verbatim}
+
+\begin{todo}
+  \item Optional: extract the zip into a temporary folder, run
+    \texttt{pdflatex main} there, and confirm it still builds.
+  \item Do \textbf{not} add \texttt{main\_20260926.tex}, the aux/log files
+    or the blank form to the zip.
+\end{todo}
+
+\section*{Step 4 --- Upload to the organizers' SharePoint folder}
+\begin{todo}
+  \item Open the SharePoint link in the 14 September email. It is left out
+    of this file on purpose, because the repository is public.
+  \item Open the subfolder \textbf{\texttt{paper14}}, or create it with
+    exactly that name if it does not exist yet.
+  \item Upload \texttt{paper14-camera-ready.zip}.
+  \item Check that the upload finished and that the file size is about
+    the same as the local zip.
+\end{todo}
+
+\section*{Step 5 --- Close the loop}
+\begin{todo}
+  \item Optional but advisable: send a short email to Riccardo Rasconi
+    (\texttt{riccardo.rasconi@istc.cnr.it}), cc Angelo Oddi, saying that the
+    paper~14 camera-ready and signed form are uploaded. The original call
+    for papers also asked for the signed agreement to be sent to Rasconi.
+  \item Finish the AIxIA 2026 registration. Pay the membership order under
+    ``Orders'' on aixia.it, then submit the green form at
+    \url{https://aixia.it/green2026-eng/}. If the order still has not
+    arrived, register on site in Perugia, as agreed with Angelo Oddi.
+  \item Do \textbf{not} commit \texttt{copyright-form-signed.pdf} or the
+    zip that contains it. The repository is public, and the scan carries your
+    handwritten signature and address. Keep both files local and untracked.
+\end{todo}
+
+\section*{Coming up}
+Talk on \textbf{8 October 2026} (15--20 minutes). The slides are in
+\texttt{papers/aiqxqia2026/talk/}.
+
+\end{document}
