@@ -1,0 +1,213 @@
+% ---------------------------------------------------------------
+% Q&A preparation for the AIQxQIA 2026 talk (paper 14)
+% "p-adic Variational Quantum Circuits Have No Barren Plateaus"
+% Thursday 8 October 2026, 11:55-12:15, room B3
+%
+% Compile: pdflatex qa-prep && pdflatex qa-prep
+% ---------------------------------------------------------------
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2cm]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\setlist{itemsep=0.2em,topsep=0.3em}
+
+\definecolor{navy}{RGB}{31,59,112}
+\titleformat{\section}{\large\bfseries\color{navy}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+\newcommand{\Qp}{\mathbb{Q}_p}
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\OK}{\mathcal{O}}
+\newcommand{\mm}{\mathfrak{m}}
+
+% The question as it will be asked
+\newcommand{\question}[1]{%
+  \par\noindent\colorbox{navy!10}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{navy}Q:} \emph{#1}}}\par}
+
+% A spoken answer
+\newenvironment{answer}
+  {\par\noindent\textbf{\color{navy}Answer (spoken):}\par
+   \begin{list}{}{\leftmargin=1.2em\rightmargin=1.2em}\item\relax}
+  {\end{list}}
+
+\newcommand{\avoid}[1]{\par\noindent\textbf{\color{BrickRed}Don't say:} #1\par}
+\newcommand{\slides}[1]{\par\noindent\textbf{\color{ForestGreen}Slides to show:} #1\par}
+\newcommand{\why}[1]{\par\noindent\textbf{Why it hurts:} #1\par}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries\color{navy} Q\&A preparation}\\[0.4em]
+  {\large $p$-adic Variational Quantum Circuits Have No Barren Plateaus}\\[0.3em]
+  AIQxQIA 2026, Perugia \quad$\cdot$\quad Thursday 8 October, 11:55--12:15,
+  room B3 \quad$\cdot$\quad 17 min + 3 min questions
+\end{center}
+
+\medskip
+\noindent\fcolorbox{navy}{navy!5}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{%
+\textbf{General rule.} On questions 2 and 3, \emph{concede first, then narrow
+the claim.} A precise answer comes across stronger than a defensive one. Never
+claim more than the paper proves: the theorem is conditional on the splitting
+hypothesis, controls only the leading digit, and predicts nothing about any
+existing device.}}
+
+% =================================================================
+\section{``No hardware exists and you can't even sample. Isn't this physically meaningless?''}
+
+\why{This is the first thing an AIQxQIA audience will think. If you sound
+defensive, the rest of the talk loses value.}
+
+\begin{answer}
+``Agreed: no $p$-adic quantum computer exists, and the model has no Monte
+Carlo readout, so it predicts nothing about a device. I use it as a
+\textbf{controlled experiment on the complex theory}. I keep the circuit, the
+observable, the ansatz and the qubit count fixed, and change only the field.
+The plateau disappears.
+
+So barren plateaus are not caused by unitarity or Hilbert-space dimension
+alone. The load is carried by two properties of $\mathbb{C}$:
+\textbf{compactness} of the unitary group and the \textbf{Archimedean}
+absolute value. That tells a mitigation where it has to bite. Restricting the
+ensemble away from Haar-typical, which is what structured ans\"atze and warm
+starts do, attacks an ingredient the argument genuinely needs.''
+\end{answer}
+
+\textbf{Then add:} the method is reusable, since any Haar moment over $G_N$
+becomes a count in a finite unitary group (overlaps, expectation values,
+$p$-adic kernels). Any application would come through classical $p$-adic
+learning on hierarchical data, where the geometry is ultrametric to begin with.
+
+\avoid{``hardware may come one day.'' The paper explicitly says it is on no
+roadmap. Also do not rank the complex-side mitigations: the paper does not say
+which one is more effective.}
+
+\slides{``Why study a model with no hardware?''}
+
+% =================================================================
+\section{``Isn't this trivial, or a plateau in disguise? Your gradient is always at most $p^{-1}$, and the result is just `a random $p$-adic integer is a unit with probability $1-1/p$'.''}
+
+\why{It attacks the content of the result, not its relevance. It also hides a
+sharper follow-up: ``with $p=3$, a third of the time you fail.''}
+
+\begin{answer}
+\textbf{(a) $p^{-1}$ is a ceiling, not a plateau.} ``$\exp_p$ only converges
+when the generator is divisible by $p$, and because the value group is
+discrete there is no slack: $\|X\|<p^{-1/(p-1)}$ is \emph{equivalent} to
+$\|X\|\le p^{-1}$. So $p^{-1}$ is the largest gradient \emph{any} convergent
+ansatz can have, and it is a constant: it does not shrink with $n$. A plateau
+is something that degrades with the qubit count; this does not.''
+
+\textbf{(b) The heuristic predicts the answer; the theorem makes it true and
+says when it fails.} ``Three things had to be proved:
+\begin{itemize}
+  \item the natural ensemble does not exist: the full unitary group is
+    non-compact, so there is no Haar probability measure, and one must pass
+    to $G_N=\mathrm{U}_N(\OK)$;
+  \item the random state is uniform on a finite sphere: that is the
+    transitivity lemma;
+  \item the error is controlled \emph{uniformly in $n$}: that is the counting
+    lemma, with error $10\,p^{1-r}$.
+\end{itemize}
+The heuristic is \emph{false} on the commuting locus
+$[\widehat M,A]\equiv0 \bmod p$, and the theorem identifies that locus
+exactly.''
+
+\textbf{(c) The $1/p$ failure is mild.} ``Failing means the gradient is
+$p^{-2}$, one digit lower, not exponentially small. The expected valuation
+should be $O(1)$: I state that as a conjecture, not as a theorem.''
+\end{answer}
+
+\avoid{``the $1/p$ is negligible.'' For $p=3$ it is not. Say it is
+\emph{bounded and independent of $n$}, which is the point.}
+
+\slides{``Surprise 2: the benchmark is $p^{-1}$'', ``Reading the theorem'',
+backup ``the bad set is a commutator''.}
+
+% =================================================================
+\section{``Your theorem assumes the commutator splits over $\FF_p$. Isn't that hypothesis doing all the work? How many circuits actually satisfy it?''}
+
+\why{This is the real weak spot of the paper, and a mathematician will find
+it. The follow-up is: ``your corollary with random $U_B$ needs splitting for
+almost every $U_B$. Have you proved that?'' You have not.}
+
+\begin{answer}
+``That is the main gap, and I say so in the paper. Over a finite field a
+Hermitian matrix need not diagonalise over the fixed field: I give a
+$2\times2$ counterexample over $\FF_9$, with eigenvalues $\pm\iota$ outside
+$\FF_3$. So the theorem is \textbf{conditional} on splitting, and I do not
+know what happens outside that class.
+
+Two things I can say.
+\begin{itemize}
+  \item The class is not exotic: the most ordinary pair you would write
+    down, Pauli $X$ against a phase rotation, satisfies it with
+    $r=2^{n-1}$, which is as large as the pigeonhole bound allows.
+  \item The hypothesis is \textbf{checkable}: reduce two integer matrices
+    modulo $p$ and look at the characteristic polynomial.
+\end{itemize}
+For the random-$U_B$ version I need splitting for almost every $U_B$, and I
+have not shown that. Closing the gap needs the classification of
+\textbf{pencils of Hermitian forms} over a finite field, which is the next
+step. The most useful immediate companion is exact enumeration in
+$\OK/\mm^{k}$ for small $n$ and $p$.''
+\end{answer}
+
+\avoid{``it holds generically.'' That is not proved.}
+
+\slides{``Limitations'', backup ``why the splitting hypothesis is not
+free'', backup ``how large can $r$ be?''.}
+
+% =================================================================
+\section{Quick replies for the follow-ups}
+
+\question{Does a maximal gradient mean the circuit trains?}
+No. I remove gradient concentration from the list of obstructions;
+convergence then depends on conditioning. With a scalar step, $p$-adic descent
+contracts only if the Hessian is scalar modulo $p$. A matrix preconditioner
+relaxes that to the Hessian being \emph{invertible} modulo $p$, which is
+generic. When it holds, convergence is ultra-fast: $O(\log_p(1/\varepsilon))$
+iterations.
+\slides{``Does a maximal gradient imply trainability?''}
+
+\question{Why $G_N$ and not the group generated by your gates?}
+$G_N$ is the smallest natural compact group containing every realisable
+circuit (Pauli, CNOT, the $\mathrm{SO}(3)_p$ gates, Hadamard when
+$\sqrt2\in K$). A gate-set-specific analysis would give sharper results and is
+the hardware-aware next step.
+\slides{``The fix: integral unitaries''.}
+
+\question{Did you verify any of this numerically?}
+Not yet, and sampling cannot be used: generalised probabilities lie in
+$\Qp$, not in $[0,1]$. The right check is exact counting over the finite rings
+$\OK/\mm^{k}$, which I plan to do next.
+\slides{``One thing that does not carry over: sampling'', ``Limitations''.}
+
+\question{What about $p=2$, or a ramified extension?}
+Not covered. Both change the residue field and the norm group, and $p=2$ is
+also the case in which the $p$-adic Hadamard gate does not exist. The proofs
+use $p$ odd in several places (Hensel, $T=-S/2$ in the Newton step).
+
+\question{You randomise only one parameter in a two-block ansatz. What about the full parameter vector?}
+Correct: this follows McClean et al.'s setting. Shallow-circuit and local-cost
+refinements in the style of Cerezo et al., and the behaviour of the full
+parameter vector, are open.
+
+\vfill
+\begin{center}
+\small Key numbers:\quad
+$\Pr[\text{maximal}]\ge1-\tfrac1p-10\,p^{1-r}$
+\quad$\cdot$\quad witness $r=2^{n-1}$
+\quad$\cdot$\quad $n=10$, $p=3$: correction $<3^{-500}$
+\quad$\cdot$\quad $|\widetilde{\mathbb{S}}_N|=p^{2N-1}-(-1)^Np^{N-1}$
+\end{center}
+
+\end{document}
